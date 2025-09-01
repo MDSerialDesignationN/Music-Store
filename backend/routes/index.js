@@ -1,9 +1,17 @@
 var express = require('express');
-var router = express.Router();
+const seedingRouter = require('./seeding');
+const cartRouter = require('./cart');
+const userRouter = require('./user');
+const authRouter = require('./auth');
+const orderRouter = require('./order');
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
-});
+const router = express.Router();
+
+
+// router.use('/seeding', seedingRouter)
+router.use('/cart', cartRouter)
+router.use('/user', userRouter)
+router.use('/auth', authRouter)
+router.use('/order', orderRouter)
 
 module.exports = router;
