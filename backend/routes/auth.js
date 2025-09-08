@@ -2,6 +2,7 @@ const express = require("express");
 const { requireGuest, requireAuth } = require("../middleware/auth");
 const DatabaseManager = require("../database/DatabaseManager");
 const User = require("../database/models/User");
+const Cart = require("../database/models/Cart");
 const authRouter = express.Router();
 
 authRouter.post("/login", requireGuest, async (req, res) => {
@@ -33,6 +34,19 @@ authRouter.post("/login", requireGuest, async (req, res) => {
     // Create session
     req.session.userId = foundUser._id;
     req.session.username = foundUser.username;
+
+    // Check if user has a cart, if not create one
+    const existingCart = await DatabaseManager.findEntries(Cart, {
+      owner: foundUser._id,
+    });
+
+    if (!existingCart || existingCart.length === 0) {
+      await DatabaseManager.createEntry(Cart, {
+        owner: foundUser._id,
+        items: [],
+      });
+      console.log("Created cart for existing user:", foundUser.username);
+    }
 
     res.json({
       message: "Login successful",
