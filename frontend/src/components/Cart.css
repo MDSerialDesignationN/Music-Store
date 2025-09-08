@@ -8,8 +8,10 @@
 .cart-header {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 2rem;
   margin-bottom: 2rem;
+  min-height: 60px;
 }
 
 .cart-title {
@@ -17,6 +19,9 @@
   font-weight: bold;
   color: #ffffff;
   margin: 0;
+  line-height: 1.1;
+  display: flex;
+  align-items: center;
 }
 
 .back-button {
@@ -33,6 +38,9 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  height: 48px;
 }
 
 .back-button:hover {
@@ -217,6 +225,13 @@
   color: #ffffff;
 }
 
+.cart-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
 .checkout-btn {
   width: 100%;
   background: linear-gradient(45deg, #1db954, #1ed760);
@@ -229,7 +244,6 @@
   font-size: 1.1rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-top: 1rem;
   transition: all 0.3s ease;
 }
 
@@ -243,6 +257,49 @@
   background: #555;
   cursor: not-allowed;
   opacity: 0.5;
+}
+
+.view-orders-btn {
+  width: 100%;
+  background: transparent;
+  border: 2px solid #b3b3b3;
+  color: #b3b3b3;
+  padding: 12px 15px;
+  border-radius: 50px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.view-orders-btn:hover {
+  border-color: #ffffff;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.orders-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Order History Section - always visible */
+.order-history-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #333;
+}
+
+.order-history-section .view-orders-btn {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
 }
 
 .error-message {

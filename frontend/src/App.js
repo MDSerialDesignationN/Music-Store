@@ -4,6 +4,7 @@ import AlbumList from "./components/AlbumList";
 import AlbumDetail from "./components/AlbumDetail";
 import ArtistDetail from "./components/ArtistDetail";
 import GenrePage from "./components/GenrePage";
+import OrderHistory from "./components/OrderHistory";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import Cart from "./components/Cart";
@@ -89,6 +90,11 @@ function App() {
   const handleShowCart = () => {
     setSearchTerm(""); // Clear search when navigating to cart
     setCurrentView("cart");
+  };
+
+  const handleShowOrderHistory = () => {
+    setSearchTerm(""); // Clear search when navigating to order history
+    setCurrentView("orderHistory");
   };
 
   const updateCartCount = async () => {
@@ -240,7 +246,15 @@ function App() {
           />
         );
       case "cart":
-        return <Cart onBack={handleBackToHome} onCheckout={handleCheckout} />;
+        return (
+          <Cart
+            onBack={handleBackToHome}
+            onCheckout={handleCheckout}
+            onViewOrders={handleShowOrderHistory}
+          />
+        );
+      case "orderHistory":
+        return <OrderHistory onBack={handleShowCart} />;
       default:
         return (
           <AlbumList
