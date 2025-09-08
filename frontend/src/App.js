@@ -3,6 +3,7 @@ import "./App.css";
 import AlbumList from "./components/AlbumList";
 import AlbumDetail from "./components/AlbumDetail";
 import ArtistDetail from "./components/ArtistDetail";
+import GenrePage from "./components/GenrePage";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import Cart from "./components/Cart";
@@ -13,6 +14,7 @@ function App() {
   const [currentView, setCurrentView] = useState("home");
   const [selectedAlbumId, setSelectedAlbumId] = useState(null);
   const [selectedArtistId, setSelectedArtistId] = useState(null);
+  const [selectedGenre, setSelectedGenre] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
@@ -57,9 +59,20 @@ function App() {
     setCurrentView("artistDetail");
   };
 
+  const handleGenreClick = (genreName) => {
+    console.log("handleGenreClick called with:", genreName);
+    setSelectedGenre(genreName);
+    setSelectedAlbumId(null);
+    setSelectedArtistId(null);
+    setSearchTerm(""); // Clear search when navigating to genre page
+    setCurrentView("genrePage");
+    console.log("View changed to genrePage");
+  };
+
   const handleBackToHome = () => {
     setSelectedAlbumId(null);
     setSelectedArtistId(null);
+    setSelectedGenre(null);
     setCurrentView("home");
   };
 
@@ -168,12 +181,16 @@ function App() {
   };
 
   const renderCurrentView = () => {
+    console.log("Current view:", currentView);
     switch (currentView) {
       case "home":
         return (
           <AlbumList
             onAlbumClick={handleAlbumClick}
             onArtistClick={handleArtistClick}
+            onGenreClick={handleGenreClick}
+            isLoggedIn={isLoggedIn}
+            onCartUpdate={updateCartCount}
             searchTerm={searchTerm}
           />
         );
@@ -193,6 +210,17 @@ function App() {
             artistId={selectedArtistId}
             onBack={handleBackToHome}
             onAlbumClick={handleAlbumClick}
+          />
+        );
+      case "genrePage":
+        return (
+          <GenrePage
+            genreName={selectedGenre}
+            onAlbumClick={handleAlbumClick}
+            onArtistClick={handleArtistClick}
+            onBack={handleBackToHome}
+            isLoggedIn={isLoggedIn}
+            onCartUpdate={updateCartCount}
           />
         );
       case "login":
@@ -218,6 +246,7 @@ function App() {
           <AlbumList
             onAlbumClick={handleAlbumClick}
             onArtistClick={handleArtistClick}
+            onGenreClick={handleGenreClick}
             isLoggedIn={isLoggedIn}
             onCartUpdate={updateCartCount}
             searchTerm={searchTerm}

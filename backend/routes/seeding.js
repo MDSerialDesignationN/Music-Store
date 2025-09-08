@@ -10,7 +10,7 @@ const seedingRouter = express.Router();
 
 seedingRouter.post("/artist", async (req, res) => {
   try {
-    const number = 30; // Reduced max for safety
+    const number = 100; // Reduced max for safety
     const createdData = [];
     const errors = [];
     const skipped = [];
@@ -66,7 +66,7 @@ seedingRouter.post("/artist", async (req, res) => {
 
 seedingRouter.post("/genre", async (req, res) => {
   try {
-    const number = 5; // Reduced max for safety
+    const number = 10; // Reduced max for safety
     const createdData = [];
     const errors = [];
     const skipped = [];
@@ -120,7 +120,7 @@ seedingRouter.post("/genre", async (req, res) => {
 
 seedingRouter.post("/album", async (req, res) => {
   try {
-    const number = 50; // Reduced max for safety
+    const number = 200; // Reduced max for safety
     const createdData = [];
     const errors = [];
     const skipped = [];
@@ -194,7 +194,7 @@ seedingRouter.post("/album", async (req, res) => {
 
 seedingRouter.post("/track", async (req, res) => {
   try {
-    const number = 100; // Reduced max for safety
+    const number = 1000; // Reduced max for safety
     const createdData = [];
     const errors = [];
     const skipped = [];

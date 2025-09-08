@@ -5,59 +5,13 @@ import placeholderImage from "../placeholder.svg";
 const AlbumList = ({
   onAlbumClick,
   onArtistClick,
+  onGenreClick,
   isLoggedIn,
   onCartUpdate,
   searchTerm = "",
 }) => {
   const [albums, setAlbums] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const addToCart = async (albumId, e) => {
-    e.stopPropagation();
-
-    if (!isLoggedIn) {
-      alert("Please log in to add items to cart");
-      return;
-    }
-
-    try {
-      const response = await fetch("/api/cart/add", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          albumId: albumId,
-          quantity: 1,
-        }),
-      });
-
-      if (response.ok) {
-        onCartUpdate && onCartUpdate();
-        // Visual feedback
-        e.target.textContent = "Added! ✓";
-        e.target.style.background = "#1db954";
-        setTimeout(() => {
-          e.target.textContent = "Add to Cart";
-          e.target.style.background = "";
-        }, 1500);
-      } else if (response.status === 404) {
-        // Create cart first
-        await fetch("/api/cart", {
-          method: "POST",
-          credentials: "include",
-        });
-        // Retry adding to cart
-        addToCart(albumId, e);
-      } else {
-        throw new Error("Failed to add to cart");
-      }
-    } catch (err) {
-      console.error("Error adding to cart:", err);
-      alert("Failed to add to cart");
-    }
-  };
 
   const fetchAlbumList = async () => {
     try {
@@ -118,59 +72,91 @@ const AlbumList = ({
       ) : Object.keys(groupedAlbums).length === 0 ? (
         <p className="notification">No albums available</p>
       ) : (
-        Object.entries(groupedAlbums).map(([genreName, genreAlbums]) => (
-          <div key={genreName} className="genre-section">
-            <h2 className="genre-title">{genreName}</h2>
-            <div className="albums-grid">
-              {genreAlbums.slice(0, 15).map((album) => (
-                <div key={album._id} className="album-card">
-                  <div
-                    onClick={() => onAlbumClick && onAlbumClick(album._id)}
-                    style={{ cursor: onAlbumClick ? "pointer" : "default" }}
-                    className="album-clickable-area"
-                  >
-                    <img
-                      className="album-image"
-                      src={placeholderImage}
-                      alt={`${album.title} album cover`}
-                    />
-                    <h3 className="album-title">
-                      {album.title.length > 15
-                        ? `${album.title.slice(0, 15)}...`
-                        : album.title}
-                    </h3>
-                  </div>
-                  <p
-                    className="album-artist clickable-artist"
+        Object.entries(groupedAlbums).map(([genreName, genreAlbums]) => {
+          const displayedAlbums = genreAlbums.slice(0, 9);
+          const hasMoreAlbums = genreAlbums.length > 9;
+
+          return (
+            <div key={genreName} className="genre-section">
+              <div className="genre-header">
+                <h2 className="genre-title">{genreName}</h2>
+                {hasMoreAlbums && (
+                  <button
+                    className="show-all-link"
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
-                      onArtistClick && onArtistClick(album.artist?._id);
+                      console.log("Show all clicked for genre:", genreName);
+                      console.log("onGenreClick function:", onGenreClick);
+                      if (onGenreClick) {
+                        onGenreClick(genreName);
+                      } else {
+                        console.error("onGenreClick is not defined!");
+                      }
                     }}
-                    style={{ cursor: onArtistClick ? "pointer" : "default" }}
                   >
-                    {album.artist?.name.length > 20
-                      ? `${album.artist?.name.slice(0, 20)}...`
-                      : album.artist?.name || "Unknown Artist"}
-                  </p>
-                  <div className="album-price">${album.price}</div>
-                  {isLoggedIn && (
-                    <button
-                      className="add-to-cart-btn"
-                      onClick={(e) => addToCart(album._id, e)}
-                    >
-                      Add to Cart
-                    </button>
-                  )}
-                </div>
-              ))}
-              {/* {genreAlbums.length > 10 && (
-                <div className="more-albums-info">
-                  <p>...und {genreAlbums.length - 10} weitere Alben</p>
-                </div>
-              )} */}
+                    Show all {genreAlbums.length}
+                  </button>
+                )}
+              </div>
+              <div className="albums-grid">
+                {displayedAlbums.map((album) => (
+                  <div key={album._id} className="album-card">
+                    <div className="album-card-content">
+                      <div
+                        onClick={() => onAlbumClick && onAlbumClick(album._id)}
+                        style={{ cursor: onAlbumClick ? "pointer" : "default" }}
+                        className="album-clickable-area"
+                      >
+                        <div className="album-image-container">
+                          <img
+                            className="album-image"
+                            src={placeholderImage}
+                            alt={`${album.title} album cover`}
+                          />
+                          <div className="play-button-overlay">
+                            <svg
+                              className="play-icon"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                            >
+                              <path d="M8 5v14l11-7z" fill="currentColor" />
+                            </svg>
+                          </div>
+                        </div>
+                        <div className="album-info">
+                          <h3 className="album-title" title={album.title}>
+                            {album.title.length > 18
+                              ? `${album.title.slice(0, 18)}...`
+                              : album.title}
+                          </h3>
+                          <p
+                            className="album-artist clickable-artist"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onArtistClick && onArtistClick(album.artist?._id);
+                            }}
+                            style={{
+                              cursor: onArtistClick ? "pointer" : "default",
+                            }}
+                            title={album.artist?.name}
+                          >
+                            {album.artist?.name.length > 22
+                              ? `${album.artist?.name.slice(0, 22)}...`
+                              : album.artist?.name || "Unknown Artist"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="album-actions">
+                        <div className="album-price">${album.price}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        ))
+          );
+        })
       )}
     </div>
   );
