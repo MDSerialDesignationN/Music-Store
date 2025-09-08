@@ -1,0 +1,173 @@
+.album-list {
+  padding: 1rem;
+}
+
+.album-list .albums-grid {
+  /* background: blue; */
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  max-width: 100vw;
+  overflow: auto;
+}
+
+.album-list .albums-grid::-webkit-scrollbar {
+  height: 8px;
+}
+
+.album-list .albums-grid::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.album-list .albums-grid::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.album-list .album-card {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.album-list .album-card h3 {
+  color: #ffffff;
+  font-size: 1rem;
+}
+
+.album-list .album-card p {
+  color: #b3b3b3;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.album-list .album-card:hover {
+  background: #1f1f1f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.album-list .album-image {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
+}
+
+.album-list .genre-title {
+  color: #ffffff;
+  padding: 0.5rem;
+}
+
+.clickable-artist {
+  transition: color 0.3s ease;
+}
+
+.clickable-artist:hover {
+  color: #1db954 !important;
+  text-decoration: underline;
+}
+
+.album-clickable-area {
+  transition: all 0.3s ease;
+}
+
+.album-list .notification {
+  color: #ffffff;
+  font-size: 1.2rem;
+  text-align: center;
+  margin-top: 2rem;
+}
+
+/* Loading Animation */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  gap: 1rem;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #333;
+  border-top: 4px solid #1db954;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Alternative pulse animation for loading text */
+.loading-text {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.album-price {
+  color: #1db954;
+  font-weight: bold;
+  font-size: 1rem;
+  margin: 0.5rem 0;
+}
+
+.add-to-cart-btn {
+  background: transparent;
+  border: 2px solid #1db954;
+  color: #1db954;
+  padding: 8px 16px;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.add-to-cart-btn:hover {
+  background: #1db954;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(29, 185, 84, 0.3);
+}
+
+.album-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 280px;
+}
+
+.album-clickable-area {
+  flex-grow: 1;
+}
