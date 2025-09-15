@@ -1,12 +1,12 @@
 var express = require("express");
-const seedingRouter = require("./seeding");
-const cartRouter = require("./cart");
-const userRouter = require("./user");
-const authRouter = require("./auth");
-const orderRouter = require("./order");
-const albumRouter = require("./album");
-const trackRouter = require("./track");
-const artistRouter = require("./artist");
+const { albumRouter } = require("../src/entities/album");
+const { artistRouter } = require("../src/entities/artist");
+const { cartRouter } = require("../src/entities/cart");
+const { orderRouter } = require("../src/entities/order");
+const { trackRouter } = require("../src/entities/track");
+const { userRouter } = require("../src/entities/user");
+const { seedingRouter } = require("../src/entities/seeding");
+const { authRouter } = require("../src/entities/auth");
 
 const router = express.Router();
 

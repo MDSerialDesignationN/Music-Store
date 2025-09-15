@@ -1,0 +1,102 @@
+const Track = require("./track.model");
+
+class TrackController {
+    static async getTracksByAlbumId(req, res) {
+        const { albumId } = req.params;
+
+        try {
+            const tracks = await Track.find({ album_id: albumId }).populate(
+                "album_id",
+                "title release_year"
+            );
+
+            if (!tracks || tracks.length === 0) {
+                return res.status(404).json({ error: "No tracks found for this album." });
+            }
+
+            // Transform the tracks to have cleaner field names
+            const transformedTracks = tracks.map((track) => ({
+                _id: track._id,
+                title: track.title,
+                duration_seconds: track.duration_seconds,
+                album: track.album_id,
+            }));
+
+            res.json({
+                message: "Tracks retrieved successfully",
+                tracks: transformedTracks,
+            });
+        } catch (error) {
+            console.error("Error retrieving tracks:", error);
+            res.status(500).json({
+                error: "Internal Server Error while retrieving tracks",
+                details: error.message,
+            });
+        }
+    }
+
+    static async getAllTracks(req, res) {
+        try {
+            const tracks = await Track.find({}).populate(
+                "album_id",
+                "title release_year"
+            );
+
+            if (!tracks || tracks.length === 0) {
+                return res.status(404).json({ error: "No tracks available." });
+            }
+
+            // Transform the tracks to have cleaner field names
+            const transformedTracks = tracks.map((track) => ({
+                _id: track._id,
+                title: track.title,
+                duration_seconds: track.duration_seconds,
+                album: track.album_id,
+            }));
+
+            res.json({
+                message: "Tracks retrieved successfully",
+                tracks: transformedTracks,
+            });
+        } catch (error) {
+            console.error("Error retrieving tracks:", error);
+            res.status(500).json({
+                error: "Internal Server Error while retrieving tracks",
+                details: error.message,
+            });
+        }
+    }
+
+    static async getTrackById(req, res) {
+        const { id } = req.params;
+
+        try {
+            const track = await Track.findById(id).populate(
+                "album_id",
+                "title release_year"
+            );
+
+            if (!track) {
+                return res.status(404).json({ error: "Track not found" });
+            }
+
+            res.json({
+                message: "Track retrieved successfully",
+                track: {
+                    _id: track._id,
+                    title: track.title,
+                    duration_seconds: track.duration_seconds,
+                    album: track.album_id,
+                },
+            });
+        } catch (error) {
+            console.error("Error retrieving track:", error);
+            res.status(500).json({
+                error: "Internal Server Error while retrieving track",
+                details: error.message,
+            });
+        }
+    }
+}
+
+module.exports = TrackController;

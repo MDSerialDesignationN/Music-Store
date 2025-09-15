@@ -6,12 +6,6 @@ const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  // address: {
-  //     country: { type: String, required: true },
-  //     city: { type: String, required: true },
-  //     street: { type: String, required: true },
-  //     houseNumber: { type: String, required: true }
-  // }
 });
 
 // Hash password before saving

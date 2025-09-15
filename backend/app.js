@@ -7,7 +7,6 @@ const router = require('./routes');
 require('dotenv').config();
 const { addUserInfo } = require('./middleware/auth');
 
-
 var app = express();
 
 
