@@ -2,9 +2,36 @@ const { Artist } = require("../artist");
 const Genre = require("../../../database/models/Genre");
 const { Album } = require("../album");
 const { Track } = require("../track");
+const DatabaseManager = require("../../../database/DatabaseManager");
 
-
+/**
+ * SeedingController Class
+ * 
+ * Handles database seeding operations for development and testing.
+ * Provides endpoints to populate the database with sample data
+ * for all entities (artists, albums, tracks, genres).
+ * 
+ * Features:
+ * - Artist seeding with faker data
+ * - Album seeding with artist relationships
+ * - Track seeding with album relationships
+ * - Genre seeding for categorization
+ * - Duplicate prevention and error handling
+ * - Batch operations for efficient seeding
+ * 
+ * Note: This is primarily for development/testing environments
+ */
 class SeedingController {
+    /**
+     * Seed Artists
+     * 
+     * Creates multiple artist records using faker-generated data.
+     * Prevents duplicate artists and provides detailed operation results.
+     * 
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     * @returns {Object} JSON response with seeding results and statistics
+     */
     static async seedArtists(req, res) {
         try {
             const number = 100; // Reduced max for safety
@@ -17,7 +44,7 @@ class SeedingController {
                     const name = faker.music.artist();
                     const country = faker.location.country();
 
-                    // Check if artist with this name already exists
+                    // Check if artist with this name already exists (prevent duplicates)
                     const existingArtist = await Artist.findOne({ name: name });
                     if (existingArtist) {
                         skipped.push(`Artist "${name}" already exists`);

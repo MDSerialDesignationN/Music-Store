@@ -2,6 +2,23 @@ import { useEffect, useState } from "react";
 import "./GenrePage.css";
 import placeholderImage from "../placeholder.svg";
 
+/**
+ * GenrePage Component - Displays albums filtered by a specific genre
+ * 
+ * Features:
+ * - Shows all albums belonging to a specific genre
+ * - Provides album grid layout with covers and details
+ * - Includes quick add-to-cart functionality
+ * - Allows navigation to album details and artist pages
+ * - Handles loading states and empty genre scenarios
+ * 
+ * @param {string} genreName - The name of the genre to display albums for
+ * @param {function} onAlbumClick - Callback function to navigate to album detail
+ * @param {function} onArtistClick - Callback function to navigate to artist page
+ * @param {function} onBack - Callback function to navigate back to main view
+ * @param {boolean} isLoggedIn - Whether the user is authenticated
+ * @param {function} onCartUpdate - Callback function to refresh cart count after additions
+ */
 const GenrePage = ({
   genreName,
   onAlbumClick,
@@ -13,8 +30,14 @@ const GenrePage = ({
   const [albums, setAlbums] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  /**
+   * Adds an album to the user's shopping cart
+   * Provides visual feedback and prevents event bubbling
+   * @param {string} albumId - The ID of the album to add to cart
+   * @param {Event} e - The click event (to prevent bubbling and provide feedback)
+   */
   const addToCart = async (albumId, e) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Prevent album click navigation
 
     if (!isLoggedIn) {
       alert("Please log in to add items to cart");
@@ -68,6 +91,10 @@ const GenrePage = ({
     }
   };
 
+  /**
+   * Fetches all albums and filters them by the current genre
+   * Updates loading state and handles API errors
+   */
   const fetchGenreAlbums = async () => {
     try {
       setLoading(true);
@@ -79,7 +106,7 @@ const GenrePage = ({
       const data = await response.json();
       const allAlbums = data.albums || [];
 
-      // Filter albums by genre
+      // Filter albums by the selected genre name
       const genreAlbums = allAlbums.filter(
         (album) => album.genre?.name === genreName
       );

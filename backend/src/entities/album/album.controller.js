@@ -1,8 +1,32 @@
 const { Track } = require('../track');
 const Album = require('./album.model');
 
+/**
+ * AlbumController Class
+ * 
+ * Handles HTTP requests related to album operations.
+ * Manages album catalog retrieval, individual album details,
+ * and album filtering based on track availability.
+ * 
+ * Features:
+ * - All albums retrieval with artist and genre population
+ * - Album filtering (only albums with tracks)
+ * - Individual album details with track information
+ * - Data transformation for clean API responses
+ * - Genre-based album filtering
+ */
 class AlbumController {
 
+    /**
+     * Get All Albums
+     * 
+     * Retrieves all albums from the catalog with populated artist and genre data.
+     * Filters albums to only include those that have tracks (complete albums).
+     * 
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     * @returns {Object} JSON response with all available albums
+     */
     static async getAllAlbums(req, res) {
         try {
             const albums = await Album.find({})
@@ -15,7 +39,7 @@ class AlbumController {
                 });
             }
 
-            // Filter albums that have tracks
+            // Filter albums that have tracks (ensures complete album data)
             const albumsWithTracks = [];
             for (const album of albums) {
                 const trackCount = await Track.countDocuments({ album_id: album._id });
@@ -30,7 +54,7 @@ class AlbumController {
                 });
             }
 
-            // Transform the albums to have cleaner field names
+            // Transform the albums to have cleaner, more readable field names
             const transformedAlbums = albumsWithTracks.map((album) => ({
                 _id: album._id,
                 title: album.title,

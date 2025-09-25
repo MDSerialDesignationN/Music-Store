@@ -1,6 +1,31 @@
 const Track = require("./track.model");
 
+/**
+ * TrackController Class
+ * 
+ * Handles HTTP requests related to track operations.
+ * Manages track retrieval by album, all tracks listing,
+ * and track data with populated album information.
+ * 
+ * Features:
+ * - Tracks by album ID with album details
+ * - All tracks retrieval with album population
+ * - Data transformation for clean API responses
+ * - Duration formatting and album metadata
+ */
 class TrackController {
+    /**
+     * Get Tracks by Album ID
+     * 
+     * Retrieves all tracks for a specific album with populated album information.
+     * Transforms data to provide clean field names for frontend consumption.
+     * 
+     * @param {Object} req - Express request object
+     * @param {Object} req.params - Route parameters
+     * @param {string} req.params.albumId - Album ID to get tracks for
+     * @param {Object} res - Express response object
+     * @returns {Object} JSON response with album tracks
+     */
     static async getTracksByAlbumId(req, res) {
         const { albumId } = req.params;
 
@@ -14,7 +39,7 @@ class TrackController {
                 return res.status(404).json({ error: "No tracks found for this album." });
             }
 
-            // Transform the tracks to have cleaner field names
+            // Transform the tracks to have cleaner, more readable field names
             const transformedTracks = tracks.map((track) => ({
                 _id: track._id,
                 title: track.title,

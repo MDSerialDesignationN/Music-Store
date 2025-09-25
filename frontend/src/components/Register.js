@@ -1,6 +1,20 @@
 import { useState } from "react";
 import "./Auth.css";
 
+/**
+ * Register Component - User registration form
+ * 
+ * Features:
+ * - Collects username, email, password, and password confirmation
+ * - Validates password length and confirmation matching
+ * - Handles registration API calls with error handling
+ * - Provides navigation to login form and back to main view
+ * - Shows loading states during registration process
+ * 
+ * @param {function} onRegister - Callback function called after successful registration
+ * @param {function} onSwitchToLogin - Callback function to switch to login form
+ * @param {function} onBack - Callback function to navigate back to main view
+ */
 const Register = ({ onRegister, onSwitchToLogin, onBack }) => {
   const [formData, setFormData] = useState({
     username: "",
@@ -19,6 +33,11 @@ const Register = ({ onRegister, onSwitchToLogin, onBack }) => {
     }));
   };
 
+  /**
+   * Validates the registration form data
+   * Checks password confirmation matching and minimum length
+   * @returns {boolean} True if form is valid, false otherwise
+   */
   const validateForm = () => {
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
@@ -31,6 +50,11 @@ const Register = ({ onRegister, onSwitchToLogin, onBack }) => {
     return true;
   };
 
+  /**
+   * Handles form submission for user registration
+   * Validates form, sends registration request to backend
+   * Calls onRegister callback on success
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");

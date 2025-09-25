@@ -1,5 +1,18 @@
 const { default: mongoose } = require("mongoose");
 
+/**
+ * Cart Model Schema
+ * 
+ * Defines the shopping cart data structure for users.
+ * Each user has one cart that contains multiple album items with quantities.
+ * 
+ * Features:
+ * - User ownership through ObjectId reference
+ * - Array of cart items with album references
+ * - Quantity validation (minimum 1)
+ * - Support for populated album data
+ * - Flexible item management (add, remove, update quantities)
+ */
 const cartSchema = new mongoose.Schema({
     owner: { type: mongoose.Types.ObjectId, ref: "User", required: true },
     items: [
@@ -9,5 +22,6 @@ const cartSchema = new mongoose.Schema({
         }
     ]
 });
+
 const Cart = mongoose.model("Cart", cartSchema);
 module.exports = Cart;

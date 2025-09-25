@@ -1,16 +1,42 @@
+const DatabaseManager = require("../../../database/DatabaseManager");
 const { Album } = require("../album");
 const Cart = require("./cart.model");
 
+/**
+ * CartController Class
+ * 
+ * Handles HTTP requests related to shopping cart operations.
+ * Manages cart creation, item addition/removal, quantity updates,
+ * and cart retrieval with populated product information.
+ * 
+ * Features:
+ * - User-specific cart management
+ * - Album inventory validation
+ * - Quantity management with bounds checking
+ * - Populated cart data with album and artist information
+ * - Cart clearing and total calculation
+ */
 class CartController {
 
+    /**
+     * Get User's Shopping Cart
+     * 
+     * Retrieves the authenticated user's shopping cart with full album details.
+     * Populates cart items with album information including artist and genre data.
+     * 
+     * @param {Object} req - Express request object with user session
+     * @param {Object} res - Express response object
+     * @returns {Object} JSON response with populated cart data
+     */
     static async getUserCart(req, res) {
         const ownerId = req.session.userId;
         const cart = await DatabaseManager.findEntries(Cart, { owner: ownerId });
+        
         if (!cart || cart.length === 0) {
             return res.status(404).json({ error: "Cart not found for this user" });
         }
 
-        // Populate the cart with album and artist data
+        // Populate the cart with complete album and artist data
         await cart[0].populate({
             path: "items.album",
             populate: {
@@ -19,7 +45,7 @@ class CartController {
             },
         });
 
-        // Transform the cart items to have cleaner field names
+        // Transform the cart items to have cleaner, more readable field names
         const transformedCart = {
             ...cart[0].toObject(),
             items: cart[0].items.map((item) => ({

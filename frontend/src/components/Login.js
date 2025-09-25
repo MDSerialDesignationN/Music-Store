@@ -1,9 +1,28 @@
+/**
+ * Login Component
+ * 
+ * Provides user authentication form for logging into the Music Store.
+ * Handles login form submission, validation, and error display.
+ * 
+ * Features:
+ * - Login form with username/email and password fields
+ * - Form validation and error handling
+ * - Loading states during authentication
+ * - Navigation to registration form
+ * - Session cookie management
+ * 
+ * @param {Function} onLogin - Success handler called with user data
+ * @param {Function} onSwitchToRegister - Handler to switch to registration form
+ * @param {Function} onBack - Handler to return to previous view
+ */
+
 import { useState } from "react";
 import "./Auth.css";
 
 const Login = ({ onLogin, onSwitchToRegister, onBack }) => {
+  // Form state management
   const [formData, setFormData] = useState({
-    username: "",
+    username: "", // Can be username or email
     password: "",
   });
   const [loading, setLoading] = useState(false);
@@ -17,6 +36,10 @@ const Login = ({ onLogin, onSwitchToRegister, onBack }) => {
     }));
   };
 
+  /**
+   * Handles login form submission
+   * Sends credentials to backend and manages response/errors
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -28,7 +51,7 @@ const Login = ({ onLogin, onSwitchToRegister, onBack }) => {
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include",
+        credentials: "include", // Important for session cookies
         body: JSON.stringify(formData),
       });
 

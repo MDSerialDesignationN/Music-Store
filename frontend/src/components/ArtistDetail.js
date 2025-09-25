@@ -2,11 +2,29 @@ import { useEffect, useState } from "react";
 import "./ArtistDetail.css";
 import placeholderImage from "../placeholder.svg";
 
+/**
+ * ArtistDetail Component - Displays detailed information about a specific artist
+ * 
+ * Features:
+ * - Shows artist name, bio, and profile image
+ * - Displays complete discography with album covers
+ * - Provides navigation to individual albums
+ * - Includes back navigation to main view
+ * - Handles loading states and error conditions
+ * 
+ * @param {string} artistId - The ID of the artist to display
+ * @param {function} onBack - Callback function to navigate back to previous view
+ * @param {function} onAlbumClick - Callback function to navigate to album detail
+ */
 const ArtistDetail = ({ artistId, onBack, onAlbumClick }) => {
   const [artist, setArtist] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  /**
+   * Fetches detailed artist information including albums from the backend
+   * Updates loading states and handles errors appropriately
+   */
   const fetchArtistDetails = async () => {
     try {
       setLoading(true);

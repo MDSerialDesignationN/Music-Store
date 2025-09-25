@@ -1,3 +1,21 @@
+/**
+ * Main API Router Configuration
+ * 
+ * Central routing configuration that mounts all entity-specific routers
+ * under the /api prefix. Implements a modular routing structure where
+ * each entity (user, album, cart, etc.) has its own router module.
+ * 
+ * API Endpoints:
+ * - /api/auth - Authentication operations (login, logout, session)
+ * - /api/user - User management operations
+ * - /api/album - Album catalog operations
+ * - /api/artist - Artist information operations
+ * - /api/track - Individual track operations
+ * - /api/cart - Shopping cart operations
+ * - /api/order - Order management operations
+ * - /api/seeding - Database seeding utilities (development)
+ */
+
 var express = require("express");
 const { albumRouter } = require("../src/entities/album");
 const { artistRouter } = require("../src/entities/artist");
@@ -10,13 +28,14 @@ const { authRouter } = require("../src/entities/auth");
 
 const router = express.Router();
 
-router.use("/seeding", seedingRouter);
-router.use("/cart", cartRouter);
-router.use("/user", userRouter);
-router.use("/auth", authRouter);
-router.use("/order", orderRouter);
-router.use("/album", albumRouter);
-router.use("/track", trackRouter);
-router.use("/artist", artistRouter);
+// Mount entity routers with their respective path prefixes
+router.use("/seeding", seedingRouter);  // Database seeding endpoints
+router.use("/cart", cartRouter);        // Shopping cart operations
+router.use("/user", userRouter);        // User management
+router.use("/auth", authRouter);        // Authentication operations
+router.use("/order", orderRouter);      // Order processing
+router.use("/album", albumRouter);      // Album catalog
+router.use("/track", trackRouter);      // Individual tracks
+router.use("/artist", artistRouter);    // Artist information
 
 module.exports = router;

@@ -1,5 +1,18 @@
 const { default: mongoose } = require("mongoose");
 
+/**
+ * Album Model Schema
+ * 
+ * Defines the album data structure for the Music Store catalog.
+ * Albums are linked to artists and genres through ObjectId references.
+ * 
+ * Features:
+ * - Title with automatic whitespace trimming
+ * - Release year tracking
+ * - Artist and genre references for data relationships
+ * - Pricing with default value
+ * - MongoDB population support for related data
+ */
 const albumSchema = new mongoose.Schema({
     title: { type: String, required: true, trim: true },
     release_year: { type: Number, required: true },

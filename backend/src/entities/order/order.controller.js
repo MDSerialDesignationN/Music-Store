@@ -1,18 +1,54 @@
+const DatabaseManager = require("../../../database/DatabaseManager");
 const Order = require("./order.model");
 
+/**
+ * OrderController Class
+ * 
+ * Handles HTTP requests related to order management operations.
+ * Manages order retrieval, order history with populated data,
+ * and order creation from cart contents.
+ * 
+ * Features:
+ * - User-specific order retrieval
+ * - Order history with populated album and artist data
+ * - Order creation workflow
+ * - Data transformation for clean API responses
+ */
 class OrderController {
+    /**
+     * Get User's Orders (Basic)
+     * 
+     * Retrieves all orders for the authenticated user without population.
+     * Returns basic order data with item references.
+     * 
+     * @param {Object} req - Express request object with user session
+     * @param {Object} res - Express response object
+     * @returns {Object} JSON response with user's orders
+     */
     static async getUserOrders(req, res) {
         const ownerId = req.session.userId;
         const orders = await DatabaseManager.findEntries(Order, { owner: ownerId });
+        
         if (!orders || orders.length === 0) {
             return res.status(404).json({ error: "Orders not found for this user" });
         }
+        
         res.json({
             message: "Orders retrieved successfully",
             orders: orders,
         });
     }
 
+    /**
+     * Get User's Order History (Detailed)
+     * 
+     * Retrieves all orders for the authenticated user with full album and artist data.
+     * Populates order items with complete product information for display.
+     * 
+     * @param {Object} req - Express request object with user session
+     * @param {Object} res - Express response object
+     * @returns {Object} JSON response with detailed order history
+     */
     static async getUserOrderHistory(req, res) {
         try {
             const ownerId = req.session.userId;
@@ -24,7 +60,7 @@ class OrderController {
                     .json({ error: "No order history found for this user" });
             }
 
-            // Populate each order with album and artist data
+            // Populate each order with complete album and artist data
             const populatedOrders = await Promise.all(
                 orders.map(async (order) => {
                     await order.populate({
@@ -35,7 +71,7 @@ class OrderController {
                         },
                     });
 
-                    // Transform the order items to have cleaner field names
+                    // Transform the order items to have cleaner, more readable field names
                     const transformedOrder = {
                         ...order.toObject(),
                         items: order.items.map((item) => ({

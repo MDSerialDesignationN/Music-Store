@@ -1,6 +1,18 @@
 import { useState, useEffect } from "react";
 import "./OrderHistory.css";
 
+/**
+ * OrderHistory Component - Displays user's order history
+ * 
+ * Features:
+ * - Fetches and displays all user orders with details
+ * - Shows order dates, items, quantities, and totals
+ * - Handles empty order history state
+ * - Provides back navigation to main view
+ * - Includes loading states and error handling
+ * 
+ * @param {function} onBack - Callback function to navigate back to main view
+ */
 const OrderHistory = ({ onBack }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -10,6 +22,10 @@ const OrderHistory = ({ onBack }) => {
     fetchOrderHistory();
   }, []);
 
+  /**
+   * Fetches the user's order history from the backend
+   * Handles different response scenarios including empty history
+   */
   const fetchOrderHistory = async () => {
     try {
       const response = await fetch("/api/order/history", {
@@ -32,6 +48,11 @@ const OrderHistory = ({ onBack }) => {
     }
   };
 
+  /**
+   * Formats order date for display
+   * @param {string} dateString - ISO date string from database
+   * @returns {string} Formatted date string
+   */
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -43,6 +64,11 @@ const OrderHistory = ({ onBack }) => {
     });
   };
 
+  /**
+   * Calculates total price for an order
+   * @param {Array} items - Array of order items with album and quantity
+   * @returns {string} Formatted total price
+   */
   const calculateOrderTotal = (items) => {
     return items
       .reduce((total, item) => total + item.album.price * item.quantity, 0)

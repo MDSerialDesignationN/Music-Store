@@ -2,6 +2,22 @@ import { useEffect, useState } from "react";
 import "./AlbumDetail.css";
 import placeholderImage from "../placeholder.svg";
 
+/**
+ * AlbumDetail Component - Displays detailed information about a specific album
+ * 
+ * Features:
+ * - Shows album cover, title, artist, and genre information
+ * - Displays complete track listing with durations
+ * - Provides add-to-cart functionality for logged-in users
+ * - Includes navigation back to album list and to artist page
+ * - Handles loading states and error conditions
+ * 
+ * @param {string} albumId - The ID of the album to display
+ * @param {function} onBack - Callback function to navigate back to album list
+ * @param {function} onArtistClick - Callback function to navigate to artist page
+ * @param {boolean} isLoggedIn - Whether the user is authenticated
+ * @param {function} onCartUpdate - Callback function to refresh cart count after additions
+ */
 const AlbumDetail = ({
   albumId,
   onBack,
@@ -45,12 +61,22 @@ const AlbumDetail = ({
     }
   }, [albumId]);
 
+  /**
+   * Formats track duration from seconds to MM:SS format
+   * @param {number} seconds - Duration in seconds
+   * @returns {string} Formatted duration string (e.g., "3:45")
+   */
   const formatDuration = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
+  /**
+   * Adds the current album to the user's shopping cart
+   * Only works if user is logged in and album is loaded
+   * Shows loading state during the operation
+   */
   const addToCart = async () => {
     if (!isLoggedIn || !album) return;
 

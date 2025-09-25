@@ -1,15 +1,42 @@
+/**
+ * Cart Component
+ * 
+ * Displays and manages the user's shopping cart with full CRUD operations.
+ * Handles cart item management, checkout process, and order navigation.
+ * 
+ * Features:
+ * - Display cart items with album details and cover images
+ * - Quantity adjustment (increase/decrease) for each item
+ * - Remove items from cart functionality
+ * - Cart total calculation and display
+ * - Checkout process to convert cart to order
+ * - Navigation to order history
+ * - Empty cart state handling
+ * - Real-time cart updates with backend synchronization
+ * 
+ * @param {Function} onBack - Handler to return to previous view
+ * @param {Function} onCheckout - Handler for successful checkout
+ * @param {Function} onViewOrders - Handler to navigate to order history
+ */
+
 import { useState, useEffect } from "react";
 import "./Cart.css";
 
 const Cart = ({ onBack, onCheckout, onViewOrders }) => {
+  // Cart state management
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Fetch cart data on component mount
   useEffect(() => {
     fetchCart();
   }, []);
 
+  /**
+   * Fetches the user's cart from the backend
+   * Creates a new cart if one doesn't exist
+   */
   const fetchCart = async () => {
     try {
       const response = await fetch("/api/cart", {
@@ -21,7 +48,7 @@ const Cart = ({ onBack, onCheckout, onViewOrders }) => {
         const data = await response.json();
         setCart(data.cart);
       } else if (response.status === 404) {
-        // Create cart if it doesn't exist
+        // Create cart if it doesn't exist (backward compatibility)
         await createCart();
       } else {
         setError("Failed to load cart");

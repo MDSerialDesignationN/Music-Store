@@ -1,3 +1,25 @@
+/**
+ * AlbumList Component
+ * 
+ * Displays the main catalog of albums in a grid layout.
+ * Provides filtering, search functionality, and quick add-to-cart options.
+ * 
+ * Features:
+ * - Grid display of albums with cover images, titles, and artist info
+ * - Real-time search filtering by album title, artist name, or genre
+ * - Quick add-to-cart functionality for logged-in users
+ * - Click navigation to album details, artist pages, and genre pages
+ * - Loading states and error handling
+ * - Responsive grid layout
+ * 
+ * @param {Function} onAlbumClick - Handler for album detail navigation
+ * @param {Function} onArtistClick - Handler for artist page navigation
+ * @param {Function} onGenreClick - Handler for genre page navigation
+ * @param {boolean} isLoggedIn - User authentication status
+ * @param {Function} onCartUpdate - Handler for cart updates
+ * @param {string} searchTerm - Current search filter term
+ */
+
 import { useEffect, useState } from "react";
 import "./AlbumList.css";
 import placeholderImage from "../placeholder.svg";
@@ -10,9 +32,14 @@ const AlbumList = ({
   onCartUpdate,
   searchTerm = "",
 }) => {
+  // Component state for albums data and loading status
   const [albums, setAlbums] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  /**
+   * Fetches the complete album catalog from the backend API
+   * Includes error handling and loading state management
+   */
   const fetchAlbumList = async () => {
     try {
       setLoading(true);
@@ -40,7 +67,10 @@ const AlbumList = ({
     fetchAlbumList();
   }, []);
 
-  // Filter albums based on search term
+  /**
+   * Filter albums based on search term
+   * Searches through album titles, artist names, and genre names
+   */
   const filteredAlbums = albums.filter((album) => {
     if (!searchTerm) return true;
 

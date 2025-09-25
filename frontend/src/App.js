@@ -1,3 +1,17 @@
+/**
+ * Music Store Frontend - Main Application Component
+ * 
+ * The central App component that manages the entire Music Store frontend application.
+ * Implements Single Page Application (SPA) navigation and global state management.
+ * 
+ * Key Features:
+ * - Navigation between different views (album list, details, cart, etc.)
+ * - User authentication and session management
+ * - Global state for current user and cart
+ * - Search and filtering functionality
+ * - Responsive design for different screen sizes
+ */
+
 import logo from "./logo.svg";
 import "./App.css";
 import AlbumList from "./components/AlbumList";
@@ -12,23 +26,33 @@ import { useState, useEffect } from "react";
 import Header from "./components/Header";
 
 function App() {
+  // Navigation State - manages current SPA view
   const [currentView, setCurrentView] = useState("home");
   const [selectedAlbumId, setSelectedAlbumId] = useState(null);
   const [selectedArtistId, setSelectedArtistId] = useState(null);
   const [selectedGenre, setSelectedGenre] = useState(null);
+  
+  // Authentication State - manages user login status
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
+  
+  // Application State - global app states
   const [cartItemCount, setCartItemCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Check for existing session on app load
+  /**
+   * Session Check Effect
+   * 
+   * Checks on app startup if a valid user session already exists.
+   * Enables automatic login on page reload without re-authentication.
+   */
   useEffect(() => {
     const checkSession = async () => {
       try {
         const response = await fetch("/api/auth/session", {
           method: "GET",
-          credentials: "include",
+          credentials: "include", // Important for session cookies
         });
 
         if (response.ok) {
@@ -46,6 +70,12 @@ function App() {
     checkSession();
   }, []);
 
+  /**
+   * Navigation Handler Functions
+   * 
+   * These functions handle navigation between different views in the SPA.
+   * They update the relevant state and clear conflicting states.
+   */
   const handleAlbumClick = (albumId) => {
     setSelectedAlbumId(albumId);
     setSelectedArtistId(null);
