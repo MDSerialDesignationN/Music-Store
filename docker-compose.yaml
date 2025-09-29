@@ -1,14 +1,37 @@
 services:
-  mongodb:
-    image: mongo:latest
-    container_name: musicstore
-    ports:
-      - "27017:27017"
+  database:
+    image: mariadb:latest
+    container_name: mariadb
+    restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: kevin
-      MONGO_INITDB_ROOT_PASSWORD: lololol123
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: "musicstore"
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
     volumes:
-      - musicstore:/data/db
+      - db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - musicstore_network
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: database
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: root
+    ports:
+      - "8080:80"
+    networks:
+      - musicstore_network
 
 volumes:
-  musicstore:
+  db_data:
+
+networks:
+  musicstore_network:
+    driver: bridge
