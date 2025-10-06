@@ -1,5 +1,5 @@
-const DatabaseManager = require("../../../database/DatabaseManager");
 const Order = require("./order.model");
+const { Cart } = require("../cart");
 
 /**
  * OrderController Class
@@ -26,17 +26,25 @@ class OrderController {
      * @returns {Object} JSON response with user's orders
      */
     static async getUserOrders(req, res) {
-        const ownerId = req.session.userId;
-        const orders = await DatabaseManager.findEntries(Order, { owner: ownerId });
-        
-        if (!orders || orders.length === 0) {
-            return res.status(404).json({ error: "Orders not found for this user" });
+        try {
+            const userId = req.session.userId;
+            const orders = await Order.findByUserId(userId);
+            
+            if (!orders || orders.length === 0) {
+                return res.status(404).json({ error: "Orders not found for this user" });
+            }
+            
+            res.json({
+                message: "Orders retrieved successfully",
+                orders: orders,
+            });
+        } catch (error) {
+            console.error("Error retrieving orders:", error);
+            res.status(500).json({
+                error: "Internal Server Error while retrieving orders",
+                details: error.message,
+            });
         }
-        
-        res.json({
-            message: "Orders retrieved successfully",
-            orders: orders,
-        });
     }
 
     /**
@@ -51,8 +59,8 @@ class OrderController {
      */
     static async getUserOrderHistory(req, res) {
         try {
-            const ownerId = req.session.userId;
-            const orders = await DatabaseManager.findEntries(Order, { owner: ownerId });
+            const userId = req.session.userId;
+            const orders = await Order.findByUserIdWithItems(userId);
 
             if (!orders || orders.length === 0) {
                 return res
@@ -60,43 +68,27 @@ class OrderController {
                     .json({ error: "No order history found for this user" });
             }
 
-            // Populate each order with complete album and artist data
-            const populatedOrders = await Promise.all(
-                orders.map(async (order) => {
-                    await order.populate({
-                        path: "items.album",
-                        populate: {
-                            path: "artist_id",
-                            select: "name country",
-                        },
-                    });
-
-                    // Transform the order items to have cleaner, more readable field names
-                    const transformedOrder = {
-                        ...order.toObject(),
-                        items: order.items.map((item) => ({
-                            album: {
-                                _id: item.album._id,
-                                title: item.album.title,
-                                price: item.album.price,
-                                artist: item.album.artist_id,
-                            },
-                            quantity: item.quantity,
-                        })),
-                    };
-
-                    return transformedOrder;
-                })
-            );
-
-            // Sort orders by date (newest first)
-            populatedOrders.sort(
-                (a, b) => new Date(b.order_date) - new Date(a.order_date)
-            );
+            // Transform orders to have cleaner, more readable field names
+            const transformedOrders = orders.map((order) => ({
+                id: order.orderId,
+                owner: order.userId,
+                order_date: order.orderDate,
+                items: order.items.map((item) => ({
+                    album: {
+                        id: item.albumId,
+                        title: item.album.title,
+                        price: item.album.price,
+                        artist: {
+                            name: item.album.artistName
+                        }
+                    },
+                    quantity: item.quantity,
+                })),
+            }));
 
             res.json({
                 message: "Order history retrieved successfully",
-                orders: populatedOrders,
+                orders: transformedOrders,
             });
         } catch (error) {
             console.error("Error fetching order history:", error);
@@ -105,25 +97,45 @@ class OrderController {
     }
 
     static async createOrder(req, res) {
-        const ownerId = req.session.userId;
-        const cart = await DatabaseManager.findEntries(Cart, { owner: ownerId });
-        if (!cart || cart.length === 0) {
-            return res.status(404).json({ error: "Cart not found for this user" });
+        try {
+            const userId = req.session.userId;
+            const cart = await Cart.findWithItems(userId);
+            
+            if (!cart) {
+                return res.status(404).json({ error: "Cart not found for this user" });
+            }
+            
+            if (cart.items.length === 0) {
+                return res.status(400).json({ error: "Cart is empty" });
+            }
+
+            // Create order with cart items
+            const orderItems = cart.items.map(item => ({
+                albumId: item.albumId,
+                quantity: item.quantity
+            }));
+
+            const order = await Order.create(userId, orderItems);
+            
+            // Clear the cart after successful order creation
+            await Cart.clearItems(cart.cartId);
+            
+            res.status(201).json({
+                message: "Order created successfully",
+                order: {
+                    id: order.orderId,
+                    owner: order.userId,
+                    order_date: order.orderDate,
+                    items: order.items
+                },
+            });
+        } catch (error) {
+            console.error("Error creating order:", error);
+            res.status(500).json({
+                error: "Internal Server Error while creating order",
+                details: error.message,
+            });
         }
-        const userCart = cart[0];
-        if (userCart.items.length === 0) {
-            return res.status(400).json({ error: "Cart is empty" });
-        }
-        const order = await DatabaseManager.createEntry(Order, {
-            owner: ownerId,
-            items: userCart.items,
-        });
-        userCart.items = [];
-        await userCart.save();
-        res.status(201).json({
-            message: "Order created successfully",
-            order: order,
-        });
     }
 }
 

@@ -1,56 +1,121 @@
-const { default: mongoose } = require("mongoose");
+const DatabaseManager = require('../../../database/DatabaseManager');
 const bcrypt = require("bcryptjs");
 
 /**
- * User Model Schema
+ * User Model
  * 
- * Defines the user data structure for the Music Store application.
- * Includes automatic password hashing and authentication methods.
+ * Defines the user data structure and operations for the Music Store application.
+ * Includes password hashing and authentication methods.
  * 
  * Features:
- * - Unique username and email validation
- * - Automatic password hashing with bcrypt
+ * - CRUD operations for users
+ * - Password hashing with bcrypt
  * - Password comparison method for authentication
- * - Pre-save middleware for security
+ * - MySQL-based data persistence
  */
-const userSchema = new mongoose.Schema({
-  username: { type: String, required: true, unique: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-});
+class User {
+    /**
+     * Hash password using bcrypt
+     * @param {string} password - Plain text password
+     * @returns {Promise<string>} Hashed password
+     */
+    static async hashPassword(password) {
+        const salt = await bcrypt.genSalt(10);
+        return bcrypt.hash(password, salt);
+    }
 
-/**
- * Pre-save Middleware - Password Hashing
- * 
- * Automatically hashes the user's password before saving to database.
- * Only hashes if the password field has been modified to avoid unnecessary processing.
- * Uses bcrypt with salt rounds of 10 for secure password storage.
- */
-userSchema.pre("save", async function (next) {
-  // Skip hashing if password hasn't been modified
-  if (!this.isModified("password")) return next();
+    /**
+     * Compare password with hash
+     * @param {string} candidatePassword - Plain text password
+     * @param {string} hashedPassword - Hashed password from database
+     * @returns {Promise<boolean>} True if passwords match
+     */
+    static async comparePassword(candidatePassword, hashedPassword) {
+        return bcrypt.compare(candidatePassword, hashedPassword);
+    }
 
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
-  }
-});
+    /**
+     * Create a new user
+     * @param {Object} userData - User data
+     * @returns {Promise<Object>} Created user with ID
+     */
+    static async create(userData) {
+        const hashedPassword = await this.hashPassword(userData.password);
+        
+        const data = {
+            username: userData.username,
+            email: userData.email,
+            password: hashedPassword
+        };
+        
+        return await DatabaseManager.createEntry('User', data);
+    }
 
-/**
- * Password Comparison Method
- * 
- * Compares a plain text password with the hashed password stored in database.
- * Used during login authentication to verify user credentials.
- * 
- * @param {string} candidatePassword - Plain text password to compare
- * @returns {Promise<boolean>} True if passwords match, false otherwise
- */
-userSchema.methods.comparePassword = async function (candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
-};
+    /**
+     * Find users by criteria
+     * @param {Object} conditions - Search conditions
+     * @param {Object} options - Additional options (orderBy, limit)
+     * @returns {Promise<Array>} Array of users
+     */
+    static async find(conditions = {}, options = {}) {
+        return await DatabaseManager.findEntries('User', conditions, options);
+    }
 
-const User = mongoose.model("User", userSchema);
+    /**
+     * Find a single user by ID
+     * @param {number} userId - User ID
+     * @returns {Promise<Object|null>} User or null
+     */
+    static async findById(userId) {
+        const results = await DatabaseManager.findEntries('User', { userId });
+        return results.length > 0 ? results[0] : null;
+    }
+
+    /**
+     * Find a user by username
+     * @param {string} username - Username
+     * @returns {Promise<Object|null>} User or null
+     */
+    static async findByUsername(username) {
+        const results = await DatabaseManager.findEntries('User', { username });
+        return results.length > 0 ? results[0] : null;
+    }
+
+    /**
+     * Find a user by email
+     * @param {string} email - Email
+     * @returns {Promise<Object|null>} User or null
+     */
+    static async findByEmail(email) {
+        const results = await DatabaseManager.findEntries('User', { email });
+        return results.length > 0 ? results[0] : null;
+    }
+
+    /**
+     * Update a user
+     * @param {number} userId - User ID
+     * @param {Object} updateData - Data to update
+     * @returns {Promise<Object>} Update result
+     */
+    static async updateOne(userId, updateData) {
+        const data = {};
+        if (updateData.username) data.username = updateData.username;
+        if (updateData.email) data.email = updateData.email;
+        if (updateData.password) {
+            data.password = await this.hashPassword(updateData.password);
+        }
+        
+        return await DatabaseManager.updateEntry('User', { userId }, data);
+    }
+
+    /**
+     * Delete a user
+     * @param {number} userId - User ID
+     * @returns {Promise<Object>} Deletion result
+     */
+    static async deleteOne(userId) {
+        return await DatabaseManager.deleteEntry('User', { userId });
+    }
+}
+
 module.exports = User;

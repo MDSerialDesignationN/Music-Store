@@ -58,6 +58,8 @@ const GenrePage = ({
       });
 
       if (response.ok) {
+        const data = await response.json();
+        console.log("Genre page add to cart response:", data);
         onCartUpdate && onCartUpdate();
         // Visual feedback
         e.target.style.background = "#1db954";
@@ -162,10 +164,10 @@ const GenrePage = ({
       ) : (
         <div className="genre-albums-grid">
           {albums.map((album) => (
-            <div key={album._id} className="album-card">
+            <div key={album.id} className="album-card">
               <div className="album-card-content">
                 <div
-                  onClick={() => onAlbumClick && onAlbumClick(album._id)}
+                  onClick={() => onAlbumClick && onAlbumClick(album.id)}
                   style={{ cursor: onAlbumClick ? "pointer" : "default" }}
                   className="album-clickable-area"
                 >
@@ -193,7 +195,7 @@ const GenrePage = ({
                       className="album-artist clickable-artist"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onArtistClick && onArtistClick(album.artist?._id);
+                        onArtistClick && onArtistClick(album.artist?.id);
                       }}
                       style={{ cursor: onArtistClick ? "pointer" : "default" }}
                       title={album.artist?.name}
@@ -207,7 +209,7 @@ const GenrePage = ({
                   {isLoggedIn && (
                     <button
                       className="add-to-cart-btn"
-                      onClick={(e) => addToCart(album._id, e)}
+                      onClick={(e) => addToCart(album.id, e)}
                       title="Add to Cart"
                     >
                       <svg

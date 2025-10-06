@@ -21,6 +21,8 @@
 
 import { useState, useEffect } from "react";
 import "./Cart.css";
+import placeholderImage from "../placeholder.svg";
+
 
 const Cart = ({ onBack, onCheckout, onViewOrders }) => {
   // Cart state management
@@ -83,14 +85,20 @@ const Cart = ({ onBack, onCheckout, onViewOrders }) => {
     }
 
     try {
-      const currentItem = cart.items.find((item) => item.album._id === albumId);
+      const currentItem = cart.items.find((item) => item.album.id === albumId);
+      if (!currentItem) {
+        setError("Item not found in cart");
+        return;
+      }
+
       const quantityDiff = newQuantity - currentItem.quantity;
 
       if (quantityDiff > 0) {
         await addToCart(albumId, quantityDiff);
-      } else {
+      } else if (quantityDiff < 0) {
         await removeFromCart(albumId, Math.abs(quantityDiff));
       }
+      // If quantityDiff === 0, no change needed
     } catch (err) {
       setError("Failed to update quantity");
     }
@@ -107,9 +115,19 @@ const Cart = ({ onBack, onCheckout, onViewOrders }) => {
 
       if (response.ok) {
         const data = await response.json();
-        setCart(data.cart);
+        console.log("Add to cart response:", data);
+        if (data.cart) {
+          setCart(data.cart);
+        } else {
+          console.warn("No cart data in response, refetching...");
+          await fetchCart();
+        }
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        setError(errorData.error || "Failed to add to cart");
       }
     } catch (err) {
+      console.error("Add to cart error:", err);
       setError("Failed to add to cart");
     }
   };
@@ -177,13 +195,13 @@ const Cart = ({ onBack, onCheckout, onViewOrders }) => {
           <>
             <div className="cart-items">
               {cart.items.map((item) => (
-                <div key={item.album._id} className="cart-item">
+                <div key={item.album.id} className="cart-item">
                   <div className="item-image">
                     <img
-                      src="/placeholder.svg"
+                      src={placeholderImage}
                       alt={item.album.title}
                       onError={(e) => {
-                        e.target.src = "/placeholder.svg";
+                        e.target.src = placeholderImage;
                       }}
                     />
                   </div>
@@ -199,7 +217,7 @@ const Cart = ({ onBack, onCheckout, onViewOrders }) => {
                   <div className="item-quantity">
                     <button
                       onClick={() =>
-                        updateQuantity(item.album._id, item.quantity - 1)
+                        updateQuantity(item.album.id, item.quantity - 1)
                       }
                       className="quantity-btn"
                     >
@@ -208,7 +226,7 @@ const Cart = ({ onBack, onCheckout, onViewOrders }) => {
                     <span className="quantity">{item.quantity}</span>
                     <button
                       onClick={() =>
-                        updateQuantity(item.album._id, item.quantity + 1)
+                        updateQuantity(item.album.id, item.quantity + 1)
                       }
                       className="quantity-btn"
                     >
@@ -221,7 +239,7 @@ const Cart = ({ onBack, onCheckout, onViewOrders }) => {
                   </div>
 
                   <button
-                    onClick={() => removeFromCart(item.album._id, 999)}
+                    onClick={() => removeFromCart(item.album.id, 999)}
                     className="remove-btn"
                   >
                     🗑️

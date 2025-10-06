@@ -116,9 +116,9 @@ const ArtistDetail = ({ artistId, onBack, onAlbumClick }) => {
           <div className="artist-albums-grid">
             {artist.albums.map((album) => (
               <div
-                key={album._id}
+                key={album.id}
                 className="artist-album-card"
-                onClick={() => onAlbumClick && onAlbumClick(album._id)}
+                onClick={() => onAlbumClick && onAlbumClick(album.id)}
                 style={{ cursor: onAlbumClick ? "pointer" : "default" }}
               >
                 <img

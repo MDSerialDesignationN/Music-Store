@@ -9,7 +9,7 @@ const Album = require('./album.model');
  * and album filtering based on track availability.
  * 
  * Features:
- * - All albums retrieval with artist and genre population
+ * - All albums retrieval with artist and genre information
  * - Album filtering (only albums with tracks)
  * - Individual album details with track information
  * - Data transformation for clean API responses
@@ -20,7 +20,7 @@ class AlbumController {
     /**
      * Get All Albums
      * 
-     * Retrieves all albums from the catalog with populated artist and genre data.
+     * Retrieves all albums from the catalog with artist and genre data.
      * Filters albums to only include those that have tracks (complete albums).
      * 
      * @param {Object} req - Express request object
@@ -29,10 +29,8 @@ class AlbumController {
      */
     static async getAllAlbums(req, res) {
         try {
-            const albums = await Album.find({})
-                .populate("artist_id", "name country")
-                .populate("genre_id", "name");
-
+            const albums = await Album.findWithDetails();
+            
             if (!albums || albums.length === 0) {
                 return res.status(404).json({
                     error: "There are no albums available."
@@ -42,8 +40,8 @@ class AlbumController {
             // Filter albums that have tracks (ensures complete album data)
             const albumsWithTracks = [];
             for (const album of albums) {
-                const trackCount = await Track.countDocuments({ album_id: album._id });
-                if (trackCount > 0) {
+                const tracks = await Track.findByAlbumId(album.albumId);
+                if (tracks.length > 0) {
                     albumsWithTracks.push(album);
                 }
             }
@@ -56,12 +54,19 @@ class AlbumController {
 
             // Transform the albums to have cleaner, more readable field names
             const transformedAlbums = albumsWithTracks.map((album) => ({
-                _id: album._id,
+                id: album.albumId,
                 title: album.title,
-                release_year: album.release_year,
-                artist: album.artist_id,
-                genre: album.genre_id,
-                price: album.price,
+                release_year: album.releaseYear,
+                artist: {
+                    id: album.artistId,
+                    name: album.artistName,
+                    country: album.artistCountry
+                },
+                genre: {
+                    id: album.genreId,
+                    name: album.genreName
+                },
+                price: album.price.toFixed(2),
             }));
 
             res.json({
@@ -81,31 +86,39 @@ class AlbumController {
         try {
             const { id } = req.params;
 
-            // Validate ObjectId format
-            if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+            // Validate ID format (should be numeric for MySQL)
+            if (!/^\d+$/.test(id)) {
                 return res.status(400).json({
                     error: "Invalid album ID format"
                 });
             }
 
-            const album = await Album.findById(id)
-                .populate("artist_id", "name country")
-                .populate("genre_id", "name");
+            const albums = await Album.findWithDetails({ albumId: parseInt(id) });
 
-            if (!album) {
+            if (!albums || albums.length === 0) {
                 return res.status(404).json({
                     error: "Album not found"
                 });
             }
 
+            const album = albums[0];
+
             res.json({
                 message: "Album retrieved successfully",
                 album: {
-                    _id: album._id,
+                    id: album.albumId,
                     title: album.title,
-                    release_year: album.release_year,
-                    artist: album.artist_id,
-                    genre: album.genre_id,
+                    release_year: album.releaseYear,
+                    artist: {
+                        id: album.artistId,
+                        name: album.artistName,
+                        country: album.artistCountry
+                    },
+                    genre: {
+                        id: album.genreId,
+                        name: album.genreName
+                    },
+                    price: album.price
                 },
             });
         } catch (error) {

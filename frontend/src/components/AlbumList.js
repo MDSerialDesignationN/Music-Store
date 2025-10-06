@@ -131,10 +131,10 @@ const AlbumList = ({
               </div>
               <div className="albums-grid">
                 {displayedAlbums.map((album) => (
-                  <div key={album._id} className="album-card">
+                  <div key={album.id} className="album-card">
                     <div className="album-card-content">
                       <div
-                        onClick={() => onAlbumClick && onAlbumClick(album._id)}
+                        onClick={() => onAlbumClick && onAlbumClick(album.id)}
                         style={{ cursor: onAlbumClick ? "pointer" : "default" }}
                         className="album-clickable-area"
                       >
@@ -164,7 +164,7 @@ const AlbumList = ({
                             className="album-artist clickable-artist"
                             onClick={(e) => {
                               e.stopPropagation();
-                              onArtistClick && onArtistClick(album.artist?._id);
+                              onArtistClick && onArtistClick(album.artist?.id);
                             }}
                             style={{
                               cursor: onArtistClick ? "pointer" : "default",

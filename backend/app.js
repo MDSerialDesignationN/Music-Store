@@ -26,12 +26,19 @@ var app = express();
 /**
  * Database Connection Setup
  * 
- * Establishes connection to MongoDB using the URI from environment variables.
+ * Establishes connection to MySQL using configuration from environment variables.
  * Application will exit with error code 1 if database connection fails.
  */
 (async () => {
   try {
-    await DatabaseManager.connect(process.env.MONGO_URI);
+    const dbConfig = {
+      host: process.env.DB_HOST || 'localhost',
+      user: process.env.DB_USER || 'root',
+      password: process.env.DB_PASSWORD || '',
+      database: process.env.DB_NAME || 'musicstore',
+      port: process.env.DB_PORT || 3306
+    };
+    await DatabaseManager.connect(dbConfig);
   } catch (error) {
     console.error('Failed to connect to database:', error);
     process.exit(1);
@@ -88,7 +95,7 @@ app.use('/api', router);
  */
 const PORT = process.env.PORT || 9080;
 app.listen(PORT, () => {
-    console.log(`Music Store Backend server is running on port ${PORT}`);
+  console.log(`Music Store Backend server is running on port ${PORT}`);
 });
 
 module.exports = app;

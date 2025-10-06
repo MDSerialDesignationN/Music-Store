@@ -1,4 +1,4 @@
-.header {
+/* .header {
   background: #010100;
   padding: 1rem 2rem;
   display: flex;
@@ -154,7 +154,6 @@
   height: 40px;
 }
 
-/* Responsive design for smaller screens */
 @media (max-width: 768px) {
   .header {
     flex-direction: column;
@@ -187,4 +186,19 @@
     flex-direction: column;
     gap: 8px;
   }
+} */
+/* Custom styles for dark-themed form controls and dropdowns */
+
+
+
+.auth-button {
+  background: transparent;
+  border: 2px solid #1db954;
+  color: #1db954;
+  transition: all 0.3s ease;
+}
+
+.auth-button:hover {
+  background: #1db954;
+  color: white;
 }

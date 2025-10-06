@@ -41,45 +41,40 @@ class AuthController {
             }
 
             // Find user by username or email (flexible login)
-            const user = await DatabaseManager.findEntries(User, {
-                $or: [{ username: username }, { email: username }],
-            });
+            let user = await User.findByUsername(username);
+            if (!user) {
+                user = await User.findByEmail(username);
+            }
 
-            if (!user || user.length === 0) {
+            if (!user) {
                 return res.status(401).json({ error: "Invalid credentials" });
             }
 
-            const foundUser = user[0];
             // Use the model's password comparison method (handles bcrypt)
-            const isValidPassword = await foundUser.comparePassword(password);
+            const isValidPassword = await User.comparePassword(password, user.password);
 
             if (!isValidPassword) {
                 return res.status(401).json({ error: "Invalid credentials" });
             }
 
             // Create user session
-            req.session.userId = foundUser._id;
-            req.session.username = foundUser.username;
+            req.session.userId = user.userId;
+            req.session.username = user.username;
 
             // Ensure user has a shopping cart (backwards compatibility)
-            const existingCart = await DatabaseManager.findEntries(Cart, {
-                owner: foundUser._id,
-            });
+            const existingCart = await Cart.findByUserId(user.userId);
 
-            if (!existingCart || existingCart.length === 0) {
-                await DatabaseManager.createEntry(Cart, {
-                    owner: foundUser._id,
-                    items: [],
-                });
-                console.log("Created cart for existing user:", foundUser.username);
+            if (!existingCart) {
+                await Cart.create(user.userId);
+                console.log("Created cart for existing user:", user.username);
             }
 
             res.json({
                 message: "Login successful",
                 user: {
-                    id: foundUser._id,
-                    username: foundUser.username,
-                    email: foundUser.email,
+                    id: user.userId,
+                    username: user.username,
+                    email: user.email,
                 },
             });
         } catch (error) {
@@ -106,22 +101,19 @@ class AuthController {
             }
 
             // Verify user still exists in database
-            const user = await DatabaseManager.findEntries(User, {
-                _id: req.session.userId,
-            });
+            const user = await User.findById(req.session.userId);
 
-            if (!user || user.length === 0) {
+            if (!user) {
                 // User was deleted, destroy invalid session
                 req.session.destroy();
                 return res.status(401).json({ error: "User not found" });
             }
 
-            const foundUser = user[0];
             res.json({
                 user: {
-                    id: foundUser._id,
-                    username: foundUser.username,
-                    email: foundUser.email,
+                    id: user.userId,
+                    username: user.username,
+                    email: user.email,
                 },
             });
         } catch (error) {

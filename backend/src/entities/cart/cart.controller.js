@@ -22,187 +22,284 @@ class CartController {
      * Get User's Shopping Cart
      * 
      * Retrieves the authenticated user's shopping cart with full album details.
-     * Populates cart items with album information including artist and genre data.
+     * Includes album information with artist and genre data.
      * 
      * @param {Object} req - Express request object with user session
      * @param {Object} res - Express response object
      * @returns {Object} JSON response with populated cart data
      */
     static async getUserCart(req, res) {
-        const ownerId = req.session.userId;
-        const cart = await DatabaseManager.findEntries(Cart, { owner: ownerId });
-        
-        if (!cart || cart.length === 0) {
-            return res.status(404).json({ error: "Cart not found for this user" });
+        try {
+            const userId = req.session.userId;
+            const cart = await Cart.findWithItems(userId);
+            
+            if (!cart) {
+                return res.status(404).json({ error: "Cart not found for this user" });
+            }
+
+            // Transform the cart items to have cleaner, more readable field names
+            const transformedCart = {
+                id: cart.cartId,
+                owner: cart.userId,
+                items: cart.items.map((item) => ({
+                    id: item.cartItemId,
+                    album: {
+                        id: item.albumId,
+                        title: item.album.title,
+                        price: item.album.price,
+                        artist: {
+                            name: item.album.artistName
+                        }
+                    },
+                    quantity: item.quantity,
+                })),
+            };
+
+            res.json({
+                message: "Cart retrieved successfully",
+                cart: transformedCart,
+            });
+        } catch (error) {
+            console.error("Error retrieving cart:", error);
+            res.status(500).json({
+                error: "Internal Server Error while retrieving cart",
+                details: error.message,
+            });
         }
-
-        // Populate the cart with complete album and artist data
-        await cart[0].populate({
-            path: "items.album",
-            populate: {
-                path: "artist_id genre_id",
-                select: "name country",
-            },
-        });
-
-        // Transform the cart items to have cleaner, more readable field names
-        const transformedCart = {
-            ...cart[0].toObject(),
-            items: cart[0].items.map((item) => ({
-                album: {
-                    _id: item.album._id,
-                    title: item.album.title,
-                    release_year: item.album.release_year,
-                    price: item.album.price,
-                    artist: item.album.artist_id,
-                    genre: item.album.genre_id,
-                },
-                quantity: item.quantity,
-            })),
-        };
-
-        res.json({
-            message: "Cart retrieved successfully",
-            cart: transformedCart,
-        });
     }
 
     static async createCart(req, res) {
-        const ownerId = req.session.userId;
-        const existingCart = await DatabaseManager.findEntries(Cart, {
-            owner: ownerId,
-        });
-        if (existingCart && existingCart.length > 0) {
-            return res.status(400).json({ error: "Cart already exists for this user" });
+        try {
+            const userId = req.session.userId;
+            const existingCart = await Cart.findByUserId(userId);
+            
+            if (existingCart) {
+                return res.status(400).json({ error: "Cart already exists for this user" });
+            }
+            
+            const cartResult = await Cart.create(userId);
+            res.status(201).json({
+                message: "Cart created successfully",
+                cart: { id: cartResult.insertId, userId: userId },
+            });
+        } catch (error) {
+            console.error("Error creating cart:", error);
+            res.status(500).json({
+                error: "Internal Server Error while creating cart",
+                details: error.message,
+            });
         }
-        const cart = await DatabaseManager.createEntry(Cart, {
-            owner: ownerId,
-            items: [],
-        });
-        res.status(201).json({
-            message: "Cart created successfully",
-            cart: cart,
-        });
     }
 
     static async addItemToCart(req, res) {
-        const ownerId = req.session.userId;
-        const { albumId, quantity } = req.body;
-        if (!albumId || !quantity || quantity <= 0) {
-            return res
-                .status(400)
-                .json({ error: "albumId and positive quantity are required" });
-        }
-        const album = await DatabaseManager.findEntries(Album, { _id: albumId });
-        if (!album || album.length === 0) {
-            return res.status(404).json({ error: "Album not found" });
-        }
-        const cart = await DatabaseManager.findEntries(Cart, { owner: ownerId });
-        if (!cart || cart.length === 0) {
-            return res.status(404).json({ error: "Cart not found for this user" });
-        }
-        const userCart = cart[0];
-        const existingItemIndex = userCart.items.findIndex(
-            (item) => item.album.toString() === albumId
-        );
-        if (existingItemIndex >= 0) {
-            userCart.items[existingItemIndex].quantity += quantity;
-        } else {
-            userCart.items.push({ album: albumId, quantity: quantity });
-        }
-        await userCart.save();
+        try {
+            const userId = req.session.userId;
+            const { albumId, quantity } = req.body;
+            
+            if (!albumId || !quantity || quantity <= 0) {
+                return res.status(400).json({ 
+                    error: "albumId and positive quantity are required" 
+                });
+            }
 
-        // Populate the cart with album and artist data before returning
-        await userCart.populate({
-            path: "items.album",
-            populate: {
-                path: "artist_id genre_id",
-                select: "name country",
-            },
-        });
+            // Validate album exists
+            const album = await Album.findById(albumId);
+            if (!album) {
+                return res.status(404).json({ error: "Album not found" });
+            }
 
-        // Transform the cart items to have cleaner field names
-        const transformedCart = {
-            ...userCart.toObject(),
-            items: userCart.items.map((item) => ({
-                album: {
-                    _id: item.album._id,
-                    title: item.album.title,
-                    release_year: item.album.release_year,
-                    price: item.album.price,
-                    artist: item.album.artist_id,
-                    genre: item.album.genre_id,
-                },
-                quantity: item.quantity,
-            })),
-        };
+            // Get or create cart
+            let cart = await Cart.findWithItems(userId);
+            if (!cart) {
+                const cartResult = await Cart.create(userId);
+                cart = await Cart.findWithItems(userId);
+            }
 
-        res.json({
-            message: "Item added to cart successfully",
-            cart: transformedCart,
-        });
+            console.log(cart)
+
+            // check if item already in cart. if so, update quantity instead
+            const existingItem = cart.items.find(item => item.albumId === albumId);
+            if (existingItem) {
+                await Cart.updateItemQuantity(existingItem.cartItemId, existingItem.quantity + quantity);
+            } else {
+               await Cart.addItem(cart.cartId, albumId, quantity);
+            }
+
+            // Return updated cart
+            const updatedCart = await Cart.findWithItems(userId);
+            console.log("Updated cart after add:", updatedCart);
+            
+            if (!updatedCart) {
+                return res.status(500).json({ error: "Failed to retrieve updated cart" });
+            }
+
+            const transformedCart = {
+                id: updatedCart.cartId,
+                owner: updatedCart.userId,
+                items: updatedCart.items.map((item) => ({
+                    id: item.cartItemId,
+                    album: {
+                        id: item.albumId,
+                        title: item.album.title,
+                        price: item.album.price,
+                        artist: {
+                            name: item.album.artistName
+                        }
+                    },
+                    quantity: item.quantity,
+                })),
+            };
+
+            console.log("Transformed cart:", transformedCart);
+
+            res.json({
+                message: "Item added to cart successfully",
+                cart: transformedCart,
+            });
+        } catch (error) {
+            console.error("Error adding item to cart:", error);
+            res.status(500).json({
+                error: "Internal Server Error while adding item to cart",
+                details: error.message,
+            });
+        }
+    }
+
+    static async updateCartItemQuantity(req, res) {
+        try {
+            const userId = req.session.userId;
+            const { cartItemId, quantity } = req.body;
+
+            if (!cartItemId || !quantity || quantity <= 0) {
+                return res.status(400).json({ 
+                    error: "cartItemId and positive quantity are required" 
+                });
+            }
+
+            await Cart.updateItemQuantity(cartItemId, quantity);
+
+            // Return updated cart
+            const updatedCart = await Cart.findWithItems(userId);
+            const transformedCart = {
+                id: updatedCart.cartId,
+                owner: updatedCart.userId,
+                items: updatedCart.items.map((item) => ({
+                    id: item.cartItemId,
+                    album: {
+                        id: item.albumId,
+                        title: item.album.title,
+                        price: item.album.price,
+                        artist: {
+                            name: item.album.artistName
+                        }
+                    },
+                    quantity: item.quantity,
+                })),
+            };
+
+            res.json({
+                message: "Cart item quantity updated successfully",
+                cart: transformedCart,
+            });
+        } catch (error) {
+            console.error("Error updating cart item quantity:", error);
+            res.status(500).json({
+                error: "Internal Server Error while updating cart item quantity",
+                details: error.message,
+            });
+        }
     }
 
     static async removeItemFromCart(req, res) {
-        const ownerId = req.session.userId;
-        const { albumId, quantity } = req.body;
-        if (!albumId || !quantity || quantity <= 0) {
-            return res
-                .status(400)
-                .json({ error: "albumId and positive quantity are required" });
-        }
-        const album = await DatabaseManager.findEntries(Album, { _id: albumId });
-        if (!album || album.length === 0) {
-            return res.status(404).json({ error: "Album not found" });
-        }
-        const cart = await DatabaseManager.findEntries(Cart, { owner: ownerId });
-        if (!cart || cart.length === 0) {
-            return res.status(404).json({ error: "Cart not found for this user" });
-        }
-        const userCart = cart[0];
-        const existingItemIndex = userCart.items.findIndex(
-            (item) => item.album.toString() === albumId
-        );
-        if (existingItemIndex === -1) {
-            return res.status(400).json({ error: "Album not in cart" });
-        }
+        try {
+            const userId = req.session.userId;
+            const { albumId, quantity } = req.body;
 
-        if (userCart.items[existingItemIndex].quantity > quantity) {
-            userCart.items[existingItemIndex].quantity -= quantity;
-        } else {
-            userCart.items.splice(existingItemIndex, 1);
+            if (!albumId) {
+                return res.status(400).json({ 
+                    error: "albumId is required" 
+                });
+            }
+
+            // Get current cart
+            const cart = await Cart.findWithItems(userId);
+            if (!cart) {
+                return res.status(404).json({ error: "Cart not found" });
+            }
+
+            // Find the cart item
+            const cartItem = cart.items.find(item => item.albumId === albumId);
+            if (!cartItem) {
+                return res.status(404).json({ error: "Item not found in cart" });
+            }
+
+            // If quantity is provided and less than current quantity, reduce it
+            if (quantity && quantity > 0 && cartItem.quantity > quantity) {
+                const newQuantity = cartItem.quantity - quantity;
+                await Cart.updateItemQuantity(cartItem.cartItemId, newQuantity);
+            } else {
+                // Remove item completely
+                await Cart.removeItem(cartItem.cartItemId);
+            }
+
+            // Return updated cart
+            const updatedCart = await Cart.findWithItems(userId);
+            const transformedCart = {
+                id: updatedCart.cartId,
+                owner: updatedCart.userId,
+                items: updatedCart.items.map((item) => ({
+                    id: item.cartItemId,
+                    album: {
+                        id: item.albumId,
+                        title: item.album.title,
+                        price: item.album.price,
+                        artist: {
+                            name: item.album.artistName
+                        }
+                    },
+                    quantity: item.quantity,
+                })),
+            };
+
+            res.json({
+                message: "Item removed from cart successfully",
+                cart: transformedCart,
+            });
+        } catch (error) {
+            console.error("Error removing item from cart:", error);
+            res.status(500).json({
+                error: "Internal Server Error while removing item from cart",
+                details: error.message,
+            });
         }
-        await userCart.save();
+    }
 
-        // Populate the cart with album and artist data before returning
-        await userCart.populate({
-            path: "items.album",
-            populate: {
-                path: "artist_id genre_id",
-                select: "name country",
-            },
-        });
+    static async clearCart(req, res) {
+        try {
+            const userId = req.session.userId;
+            const cart = await Cart.findByUserId(userId);
 
-        // Transform the cart items to have cleaner field names
-        const transformedCart = {
-            ...userCart.toObject(),
-            items: userCart.items.map((item) => ({
-                album: {
-                    _id: item.album._id,
-                    title: item.album.title,
-                    release_year: item.album.release_year,
-                    price: item.album.price,
-                    artist: item.album.artist_id,
-                    genre: item.album.genre_id,
-                },
-                quantity: item.quantity,
-            })),
-        };
+            if (!cart) {
+                return res.status(404).json({ error: "Cart not found" });
+            }
 
-        res.json({
-            message: "Item removed from cart successfully",
-            cart: transformedCart,
-        });
+            await Cart.clearItems(cart.cartId);
+
+            res.json({
+                message: "Cart cleared successfully",
+                cart: {
+                    id: cart.cartId,
+                    owner: cart.userId,
+                    items: []
+                }
+            });
+        } catch (error) {
+            console.error("Error clearing cart:", error);
+            res.status(500).json({
+                error: "Internal Server Error while clearing cart",
+                details: error.message,
+            });
+        }
     }
 }
 

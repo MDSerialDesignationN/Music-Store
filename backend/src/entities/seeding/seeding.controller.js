@@ -2,7 +2,7 @@ const { Artist } = require("../artist");
 const Genre = require("../../../database/models/Genre");
 const { Album } = require("../album");
 const { Track } = require("../track");
-const DatabaseManager = require("../../../database/DatabaseManager");
+const { faker } = require('@faker-js/faker');
 
 /**
  * SeedingController Class
@@ -45,19 +45,22 @@ class SeedingController {
                     const country = faker.location.country();
 
                     // Check if artist with this name already exists (prevent duplicates)
-                    const existingArtist = await Artist.findOne({ name: name });
-                    if (existingArtist) {
+                    const existingArtists = await Artist.find({ name: name });
+                    if (existingArtists && existingArtists.length > 0) {
                         skipped.push(`Artist "${name}" already exists`);
                         continue;
                     }
 
-                    const artist = await DatabaseManager.createEntry(Artist, {
+                    const artistResult = await Artist.create({
                         name,
                         country,
                     });
 
-                    const artistObj = artist.toObject();
-                    createdData.push(artistObj);
+                    createdData.push({
+                        artistId: artistResult.insertId,
+                        name,
+                        country
+                    });
                 } catch (error) {
                     console.error(`Error creating artist ${i + 1}:`, error);
                     if (error.code === 11000) {
@@ -100,18 +103,20 @@ class SeedingController {
                     const name = faker.music.genre();
 
                     // Check if genre with this name already exists
-                    const existingGenre = await Genre.findOne({ name: name });
-                    if (existingGenre) {
+                    const existingGenres = await Genre.find({ name: name });
+                    if (existingGenres && existingGenres.length > 0) {
                         skipped.push(`Genre "${name}" already exists`);
                         continue;
                     }
 
-                    const artist = await DatabaseManager.createEntry(Genre, {
+                    const genreResult = await Genre.create({
                         name,
                     });
 
-                    const genreObj = artist.toObject();
-                    createdData.push(genreObj);
+                    createdData.push({
+                        genreId: genreResult.insertId,
+                        name
+                    });
                 } catch (error) {
                     console.error(`Error creating genre ${i + 1}:`, error);
                     if (error.code === 11000) {
@@ -151,41 +156,46 @@ class SeedingController {
 
             for (let i = 0; i < number; i++) {
                 try {
-                    const title = faker.music.album();
-                    const release_year = faker.number.int({ min: 1950, max: 2023 });
-                    const artist_id = await Artist.aggregate([
-                        { $sample: { size: 1 } },
-                        { $project: { _id: 1 } },
-                    ]).then((res) => res[0]?._id);
-                    const genre_id = await Genre.aggregate([
-                        { $sample: { size: 1 } },
-                        { $project: { _id: 1 } },
-                    ]).then((res) => res[0]?._id);
+                    const title = faker.music.songName();
+                    const release_year = faker.date.between({ from: '1950-01-01', to: '2023-12-31' }).getFullYear();
+                    
+                    // Get random artist and genre
+                    const artists = await Artist.find();
+                    const genres = await Genre.find();
+                    
+                    if (artists.length === 0 || genres.length === 0) {
+                        errors.push('No artists or genres available for album creation');
+                        continue;
+                    }
+                    
+                    const artist_id = artists[Math.floor(Math.random() * artists.length)].artistId;
+                    const genre_id = genres[Math.floor(Math.random() * genres.length)].genreId;
 
                     // Check if album with this title and artist already exists
-                    const existingAlbum = await Album.findOne({
+                    const existingAlbums = await Album.find({
                         title: title,
-                        artist_id: artist_id,
+                        artistId: artist_id,
                     });
-                    if (existingAlbum) {
+                    if (existingAlbums && existingAlbums.length > 0) {
                         skipped.push(`Album "${title}" by this artist already exists`);
                         continue;
                     }
 
-                    const album = await DatabaseManager.createEntry(Album, {
+                    const albumResult = await Album.create({
                         title,
                         release_year,
                         artist_id,
                         genre_id,
-                        price: faker.number.float({
-                            min: 5.99,
-                            max: 19.99,
-                            fractionDigits: 2,
-                        }),
+                        price: parseFloat(faker.commerce.price({ min: 5.99, max: 19.99 })),
                     });
 
-                    const albumObj = album.toObject();
-                    createdData.push(albumObj);
+                    createdData.push({
+                        albumId: albumResult.insertId,
+                        title,
+                        release_year,
+                        artistId: artist_id,
+                        genreId: genre_id
+                    });
                 } catch (error) {
                     console.error(`Error creating album ${i + 1}:`, error);
                     if (error.code === 11000) {
@@ -227,29 +237,38 @@ class SeedingController {
                 try {
                     const title = faker.music.songName();
                     const duration_seconds = faker.number.int({ min: 60, max: 600 });
-                    const album_id = await Album.aggregate([
-                        { $sample: { size: 1 } },
-                        { $project: { _id: 1 } },
-                    ]).then((res) => res[0]?._id);
+                    // Get random album
+                    const albums = await Album.find();
+                    
+                    if (albums.length === 0) {
+                        errors.push('No albums available for track creation');
+                        continue;
+                    }
+                    
+                    const album_id = albums[Math.floor(Math.random() * albums.length)].albumId;
 
                     // Check if track with this title already exists in this album
-                    const existingTrack = await Track.findOne({
+                    const existingTracks = await Track.find({
                         title: title,
-                        album_id: album_id,
+                        albumId: album_id,
                     });
-                    if (existingTrack) {
+                    if (existingTracks && existingTracks.length > 0) {
                         skipped.push(`Track "${title}" already exists in this album`);
                         continue;
                     }
 
-                    const track = await DatabaseManager.createEntry(Track, {
+                    const trackResult = await Track.create({
                         title,
                         duration_seconds,
                         album_id,
                     });
 
-                    const trackObj = track.toObject();
-                    createdData.push(trackObj);
+                    createdData.push({
+                        trackId: trackResult.insertId,
+                        title,
+                        duration_seconds,
+                        albumId: album_id
+                    });
                 } catch (error) {
                     console.error(`Error creating track ${i + 1}:`, error);
                     if (error.code === 11000) {

@@ -38,8 +38,19 @@ class UserController {
         }
 
         try {
+            // Check if user already exists
+            const existingUser = await User.findByUsername(username);
+            if (existingUser) {
+                return res.status(400).json({ error: "User with this username already exists" });
+            }
+
+            const existingEmail = await User.findByEmail(email);
+            if (existingEmail) {
+                return res.status(400).json({ error: "User with this email already exists" });
+            }
+
             // Create the user first
-            const user = await DatabaseManager.createEntry(User, {
+            const userResult = await User.create({
                 username,
                 email,
                 password,
@@ -47,30 +58,19 @@ class UserController {
 
             // Create an empty cart for the new user
             // This ensures every user has a cart ready for shopping
-            await DatabaseManager.createEntry(Cart, {
-                owner: user._id,
-                items: [],
-            });
-
-            // Remove password from response for security
-            const userObj = user.toObject();
-            delete userObj.password;
+            await Cart.create(userResult.insertId);
 
             res.status(201).json({
                 message: "User created successfully",
-                user: userObj,
+                user: {
+                    id: userResult.insertId,
+                    username,
+                    email
+                },
             });
         } catch (error) {
             console.error("Error creating user:", error);
-
-            // Handle duplicate user error (MongoDB error code 11000)
-            if (error.code === 11000) {
-                res
-                    .status(400)
-                    .json({ error: "User with this email or username already exists" });
-            } else {
-                res.status(500).json({ error: "Internal Server Error" });
-            }
+            res.status(500).json({ error: "Internal Server Error" });
         }
     }
 }

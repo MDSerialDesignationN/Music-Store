@@ -86,16 +86,19 @@ const AlbumDetail = ({
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ albumId: album._id, quantity: 1 }),
+        body: JSON.stringify({ albumId: album.id, quantity: 1 }),
       });
 
       if (response.ok) {
+        const data = await response.json();
+        console.log("Album add to cart response:", data);
         alert(`"${album.title}" has been added to your cart!`);
         if (onCartUpdate) {
           onCartUpdate();
         }
       } else {
-        alert("Failed to add album to cart");
+        const errorData = await response.json().catch(() => ({}));
+        alert(errorData.error || "Failed to add album to cart");
       }
     } catch (err) {
       console.error("Error adding to cart:", err);
@@ -150,7 +153,7 @@ const AlbumDetail = ({
           <h1 className="album-title-large">{album.title}</h1>
           <h2
             className="album-artist-large clickable-artist"
-            onClick={() => onArtistClick && onArtistClick(album.artist?._id)}
+            onClick={() => onArtistClick && onArtistClick(album.artist?.id)}
             style={{ cursor: onArtistClick ? "pointer" : "default" }}
           >
             by {album.artist?.name || "Unknown Artist"}
@@ -179,7 +182,7 @@ const AlbumDetail = ({
         ) : (
           <div className="tracks-list">
             {tracks.map((track, index) => (
-              <div key={track._id} className="track-item">
+              <div key={track.id} className="track-item">
                 <span className="track-number">{index + 1}</span>
                 <span className="track-title">{track.title}</span>
                 <span className="track-duration">

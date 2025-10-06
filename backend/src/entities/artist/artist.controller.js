@@ -30,7 +30,7 @@ class ArtistController {
      */
     static async getAllArtists(req, res) {
         try {
-            const artists = await Artist.find({});
+            const artists = await Artist.find();
 
             if (!artists || artists.length === 0) {
                 return res.status(404).json({ error: "No artists available." });
@@ -65,28 +65,34 @@ class ArtistController {
         const { id } = req.params;
 
         try {
-            const artist = await Artist.findById(id);
+            // Validate ID format (should be numeric for MySQL)
+            if (!/^\d+$/.test(id)) {
+                return res.status(400).json({
+                    error: "Invalid artist ID format"
+                });
+            }
+
+            const artist = await Artist.findById(parseInt(id));
             if (!artist) {
                 return res.status(404).json({ error: "Artist not found" });
             }
 
-            // Get all albums by this artist with populated genre information
-            const albums = await Album.find({ artist_id: id }).populate(
-                "genre_id",
-                "name"
-            );
+            // Get all albums by this artist with genre information
+            const albums = await Album.findWithDetails({ artistId: parseInt(id) });
 
             // Filter albums that have tracks (ensures complete album data)
             const albumsWithTracks = [];
             for (const album of albums) {
-                const trackCount = await Track.countDocuments({ album_id: album._id });
-                if (trackCount > 0) {
+                const tracks = await Track.findByAlbumId(album.albumId);
+                if (tracks.length > 0) {
                     albumsWithTracks.push({
-                        _id: album._id,
+                        id: album.albumId,
                         title: album.title,
-                        release_year: album.release_year,
-                        genre: album.genre_id,
-                        trackCount: trackCount,
+                        release_year: album.releaseYear,
+                        genre: {
+                            name: album.genreName
+                        },
+                        trackCount: tracks.length,
                     });
                 }
             }
@@ -94,7 +100,7 @@ class ArtistController {
             res.json({
                 message: "Artist retrieved successfully",
                 artist: {
-                    _id: artist._id,
+                    id: artist.artistId,
                     name: artist.name,
                     country: artist.country,
                     albumCount: albumsWithTracks.length,

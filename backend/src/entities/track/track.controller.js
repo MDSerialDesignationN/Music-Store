@@ -30,10 +30,14 @@ class TrackController {
         const { albumId } = req.params;
 
         try {
-            const tracks = await Track.find({ album_id: albumId }).populate(
-                "album_id",
-                "title release_year"
-            );
+            // Validate ID format (should be numeric for MySQL)
+            if (!/^\d+$/.test(albumId)) {
+                return res.status(400).json({
+                    error: "Invalid album ID format"
+                });
+            }
+
+            const tracks = await Track.findByAlbumId(parseInt(albumId));
 
             if (!tracks || tracks.length === 0) {
                 return res.status(404).json({ error: "No tracks found for this album." });
@@ -41,10 +45,10 @@ class TrackController {
 
             // Transform the tracks to have cleaner, more readable field names
             const transformedTracks = tracks.map((track) => ({
-                _id: track._id,
+                id: track.trackId,
                 title: track.title,
-                duration_seconds: track.duration_seconds,
-                album: track.album_id,
+                duration_seconds: track.durationSeconds,
+                album_id: track.albumId,
             }));
 
             res.json({
@@ -62,10 +66,7 @@ class TrackController {
 
     static async getAllTracks(req, res) {
         try {
-            const tracks = await Track.find({}).populate(
-                "album_id",
-                "title release_year"
-            );
+            const tracks = await Track.find();
 
             if (!tracks || tracks.length === 0) {
                 return res.status(404).json({ error: "No tracks available." });
@@ -73,10 +74,10 @@ class TrackController {
 
             // Transform the tracks to have cleaner field names
             const transformedTracks = tracks.map((track) => ({
-                _id: track._id,
+                id: track.trackId,
                 title: track.title,
-                duration_seconds: track.duration_seconds,
-                album: track.album_id,
+                duration_seconds: track.durationSeconds,
+                album_id: track.albumId,
             }));
 
             res.json({
@@ -96,10 +97,14 @@ class TrackController {
         const { id } = req.params;
 
         try {
-            const track = await Track.findById(id).populate(
-                "album_id",
-                "title release_year"
-            );
+            // Validate ID format (should be numeric for MySQL)
+            if (!/^\d+$/.test(id)) {
+                return res.status(400).json({
+                    error: "Invalid track ID format"
+                });
+            }
+
+            const track = await Track.findById(parseInt(id));
 
             if (!track) {
                 return res.status(404).json({ error: "Track not found" });
@@ -108,10 +113,10 @@ class TrackController {
             res.json({
                 message: "Track retrieved successfully",
                 track: {
-                    _id: track._id,
+                    id: track.trackId,
                     title: track.title,
-                    duration_seconds: track.duration_seconds,
-                    album: track.album_id,
+                    duration_seconds: track.durationSeconds,
+                    album_id: track.albumId,
                 },
             });
         } catch (error) {

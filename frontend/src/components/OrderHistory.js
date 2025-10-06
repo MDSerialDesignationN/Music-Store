@@ -132,10 +132,10 @@ const OrderHistory = ({ onBack }) => {
         ) : (
           <div className="orders-list">
             {orders.map((order) => (
-              <div key={order._id} className="order-card">
+              <div key={order.id} className="order-card">
                 <div className="order-header">
                   <div className="order-info">
-                    <h3 className="order-id">Order #{order._id.slice(-8)}</h3>
+                    <h3 className="order-id">Order #{order.id}</h3>
                     <p className="order-date">{formatDate(order.order_date)}</p>
                   </div>
                   <div className="order-summary">
@@ -150,7 +150,7 @@ const OrderHistory = ({ onBack }) => {
 
                 <div className="order-items">
                   {order.items.map((item) => (
-                    <div key={item.album._id} className="order-item">
+                    <div key={item.album.id} className="order-item">
                       <div className="item-details">
                         <h4 className="item-title">{item.album.title}</h4>
                         <p className="item-artist">
