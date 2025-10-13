@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import "./GenrePage.css";
 import placeholderImage from "../placeholder.svg";
 
 /**
@@ -129,10 +128,13 @@ const GenrePage = ({
   }, [genreName]);
 
   return (
-    <div className="genre-page">
-      <div className="genre-page-header">
-        <button className="back-button" onClick={onBack}>
-          <svg className="back-icon" viewBox="0 0 24 24" fill="none">
+    <div className="px-6 pb-8 min-h-screen max-md:px-4 max-md:pb-4" style={{background: 'linear-gradient(180deg, rgba(18, 18, 18, 0.6) 0%, #121212 100%)'}}>
+      <div className="py-8 flex flex-col gap-2 max-md:py-6">
+        <button 
+          className="bg-transparent border-none text-[#b3b3b3] text-sm font-semibold cursor-pointer flex items-center gap-2 py-2 px-0 transition-colors duration-200 self-start uppercase tracking-wider hover:text-white" 
+          onClick={onBack}
+        >
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
             <path
               d="M19 12H5"
               stroke="currentColor"
@@ -150,36 +152,35 @@ const GenrePage = ({
           </svg>
           Back
         </button>
-        <h1 className="genre-page-title">{genreName}</h1>
-        <p className="genre-page-subtitle">{albums.length} albums</p>
+        <h1 className="text-white text-6xl font-black m-0 tracking-tight leading-none max-xl:text-5xl max-md:text-4xl max-sm:text-3xl">{genreName}</h1>
+        <p className="text-[#b3b3b3] text-base font-normal mt-2 mb-0">{albums.length} albums</p>
       </div>
 
       {loading ? (
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p className="loading-text">Loading {genreName} albums...</p>
+        <div className="flex flex-col items-center justify-center min-h-[400px] gap-6">
+          <div className="w-[60px] h-[60px] border-[3px] border-[#333] border-t-[#1db954] rounded-full animate-spin"></div>
+          <p className="text-[#b3b3b3] text-lg font-normal animate-pulse">Loading {genreName} albums...</p>
         </div>
       ) : albums.length === 0 ? (
-        <p className="notification">No albums found in this genre</p>
+        <p className="text-[#b3b3b3] text-xl text-center mt-12 font-normal">No albums found in this genre</p>
       ) : (
-        <div className="genre-albums-grid">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6 p-2 max-xl:gap-5 max-md:gap-4 max-sm:gap-3">
           {albums.map((album) => (
-            <div key={album.id} className="album-card">
-              <div className="album-card-content">
+            <div key={album.id} className="group bg-[#181818] rounded-lg p-4 transition-all duration-300 cursor-pointer relative overflow-hidden hover:bg-[#282828] hover:-translate-y-1 hover:shadow-2xl max-md:p-3 max-sm:p-2">
+              <div className="flex flex-col h-full">
                 <div
                   onClick={() => onAlbumClick && onAlbumClick(album.id)}
                   style={{ cursor: onAlbumClick ? "pointer" : "default" }}
-                  className="album-clickable-area"
                 >
-                  <div className="album-image-container">
+                  <div className="relative mb-4 rounded-md overflow-hidden shadow-2xl">
                     <img
-                      className="album-image"
+                      className="w-full h-40 object-cover block transition-transform duration-300 group-hover:scale-105 max-md:h-[140px] max-sm:h-[120px]"
                       src={placeholderImage}
                       alt={`${album.title} album cover`}
                     />
-                    <div className="play-button-overlay">
+                    <div className="absolute bottom-2 right-2 bg-[#1db954] w-12 h-12 rounded-full flex items-center justify-center translate-y-2 opacity-0 transition-all duration-300 shadow-xl hover:scale-105 group-hover:translate-y-0 group-hover:opacity-100 max-sm:w-10 max-sm:h-10 max-sm:bottom-1 max-sm:right-1">
                       <svg
-                        className="play-icon"
+                        className="w-6 h-6 text-black ml-0.5 max-sm:w-5 max-sm:h-5"
                         viewBox="0 0 24 24"
                         fill="none"
                       >
@@ -187,12 +188,12 @@ const GenrePage = ({
                       </svg>
                     </div>
                   </div>
-                  <div className="album-info">
-                    <h3 className="album-title" title={album.title}>
+                  <div className="flex-grow mb-3">
+                    <h3 className="text-white text-base font-bold m-0 mb-1 leading-tight" title={album.title}>
                       {album.title}
                     </h3>
                     <p
-                      className="album-artist clickable-artist"
+                      className="text-[#b3b3b3] text-sm font-normal m-0 leading-normal transition-colors duration-200 cursor-pointer hover:text-white hover:underline"
                       onClick={(e) => {
                         e.stopPropagation();
                         onArtistClick && onArtistClick(album.artist?.id);
@@ -204,16 +205,16 @@ const GenrePage = ({
                     </p>
                   </div>
                 </div>
-                <div className="album-actions">
-                  <div className="album-price">${album.price}</div>
+                <div className="flex justify-between items-center mt-auto">
+                  <div className="text-[#1db954] font-bold text-base">${album.price}</div>
                   {isLoggedIn && (
                     <button
-                      className="add-to-cart-btn"
+                      className="bg-transparent border-none text-[#b3b3b3] w-8 h-8 rounded-full cursor-pointer transition-all duration-200 flex items-center justify-center p-0 hover:bg-[#1a1a1a] hover:text-[#1db954] hover:scale-110"
                       onClick={(e) => addToCart(album.id, e)}
                       title="Add to Cart"
                     >
                       <svg
-                        className="cart-icon"
+                        className="w-[18px] h-[18px]"
                         viewBox="0 0 24 24"
                         fill="none"
                       >

@@ -92,7 +92,7 @@ const Login = ({ onLogin, onSwitchToRegister, onBack }) => {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           {error && (
-            <div className="bg-[rgba(255,107,107,0.1)] border border-[#ff6b6b] rounded-lg px-4 py-3 text-[#ff6b6b] text-sm text-center">
+            <div className="bg-[rgba(255,107,107,0.1)] border-[#ff6b6b] border-1 rounded-lg px-4 py-3 text-[#ff6b6b] text-sm text-center">
               {error}
             </div>
           )}

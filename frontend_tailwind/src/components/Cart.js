@@ -20,7 +20,6 @@
  */
 
 import { useState, useEffect } from "react";
-import "./Cart.css";
 import placeholderImage from "../placeholder.svg";
 
 
@@ -166,38 +165,42 @@ const Cart = ({ onBack, onCheckout, onViewOrders }) => {
 
   if (loading) {
     return (
-      <div className="cart-container">
-        <div className="loading-spinner"></div>
+      <div className="bg-[#020204] text-[#c1c1c1] min-h-screen p-8">
+        <div className="border-4 border-[#333] border-t-[#1db954] rounded-full w-[50px] h-[50px] animate-spin mx-auto my-8"></div>
       </div>
     );
   }
 
   return (
-    <div className="cart-container">
-      <div className="cart-header">
-        <button onClick={onBack} className="back-button">
-          <span className="back-button-icon">←</span>
+    <div className="bg-[#020204] text-[#c1c1c1] min-h-screen p-8">
+      <div className="flex items-center justify-start gap-8 mb-8 min-h-[60px]">
+        <button 
+          onClick={onBack} 
+          className="bg-transparent border-2 border-[#1db954] text-[#1db954] py-3 px-6 rounded-full cursor-pointer transition-all duration-300 font-semibold uppercase tracking-[0.5px] flex items-center gap-2 whitespace-nowrap flex-shrink-0 h-12 hover:bg-[#1db954] hover:text-white hover:-translate-y-0.5 hover:shadow-[0_4px_15px_rgba(29,185,84,0.3)]"
+        >
+          <span className="text-xl">←</span>
           Back to Home
         </button>
-        <h1 className="cart-title">Shopping Cart</h1>
+        <h1 className="text-4xl font-bold text-white m-0 leading-tight flex items-center">Shopping Cart</h1>
       </div>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && <div className="bg-[#ff6b6b] text-white p-4 rounded-[10px] mb-4 text-center">{error}</div>}
 
-      <div className="cart-content">
+      <div className="grid grid-cols-[1fr_300px] gap-8 max-w-[1200px] max-md:grid-cols-1">
         {!cart || cart.items.length === 0 ? (
-          <div className="empty-cart">
-            <div className="empty-cart-icon">🛒</div>
-            <h2>Your cart is empty</h2>
+          <div className="col-span-full text-center p-16 bg-[#1a1a1a] rounded-[15px] border-[1px] border-[#333]">
+            <div className="text-6xl mb-4">🛒</div>
+            <h2 className="text-white mb-2">Your cart is empty</h2>
             <p>Add some albums to get started!</p>
           </div>
         ) : (
           <>
-            <div className="cart-items">
+            <div className="flex flex-col gap-4">
               {cart.items.map((item) => (
-                <div key={item.album.id} className="cart-item">
-                  <div className="item-image">
+                <div key={item.album.id} className="bg-[#1a1a1a] border-[1px] border-[#333] rounded-[15px] p-6 grid grid-cols-[80px_1fr_auto_auto_auto] gap-4 items-center transition-all duration-300 hover:border-[#1db954] hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(0,0,0,0.3)] max-md:grid-cols-[60px_1fr_auto] max-md:gap-2">
+                  <div className="w-20 h-20 rounded-[10px] overflow-hidden bg-[#333] max-md:w-[60px] max-md:h-[60px]">
                     <img
+                      className="w-full h-full object-cover"
                       src={placeholderImage}
                       alt={item.album.title}
                       onError={(e) => {
@@ -206,41 +209,41 @@ const Cart = ({ onBack, onCheckout, onViewOrders }) => {
                     />
                   </div>
 
-                  <div className="item-details">
-                    <h3 className="item-title">{item.album.title}</h3>
-                    <p className="item-artist">
+                  <div className="flex flex-col gap-2">
+                    <h3 className="text-white text-lg font-bold m-0">{item.album.title}</h3>
+                    <p className="text-[#c1c1c1] m-0 text-sm">
                       {item.album.artist?.name || "Unknown Artist"}
                     </p>
-                    <p className="item-price">${item.album.price}</p>
+                    <p className="text-[#1db954] font-bold m-0">${item.album.price}</p>
                   </div>
 
-                  <div className="item-quantity">
+                  <div className="flex items-center gap-2 max-md:col-start-2 max-md:justify-start max-md:mt-2">
                     <button
                       onClick={() =>
                         updateQuantity(item.album.id, item.quantity - 1)
                       }
-                      className="quantity-btn"
+                      className="bg-[#333] border-[1px] border-[#555] text-white w-[30px] h-[30px] rounded-full cursor-pointer transition-all duration-300 flex items-center justify-center hover:bg-[#1db954] hover:border-[#1db954]"
                     >
                       -
                     </button>
-                    <span className="quantity">{item.quantity}</span>
+                    <span className="text-white font-bold min-w-[20px] text-center">{item.quantity}</span>
                     <button
                       onClick={() =>
                         updateQuantity(item.album.id, item.quantity + 1)
                       }
-                      className="quantity-btn"
+                      className="bg-[#333] border-[1px] border-[#555] text-white w-[30px] h-[30px] rounded-full cursor-pointer transition-all duration-300 flex items-center justify-center hover:bg-[#1db954] hover:border-[#1db954]"
                     >
                       +
                     </button>
                   </div>
 
-                  <div className="item-total">
+                  <div className="text-white font-bold text-lg max-md:col-start-2 max-md:justify-self-end max-md:mt-2">
                     ${(item.album.price * item.quantity).toFixed(2)}
                   </div>
 
                   <button
                     onClick={() => removeFromCart(item.album.id, 999)}
-                    className="remove-btn"
+                    className="bg-transparent border-[1px] border-[#ff6b6b] text-[#ff6b6b] w-10 h-10 rounded-full cursor-pointer transition-all duration-300 flex items-center justify-center hover:bg-[#ff6b6b] hover:text-white max-md:row-start-1 max-md:col-start-3"
                   >
                     🗑️
                   </button>
@@ -248,20 +251,20 @@ const Cart = ({ onBack, onCheckout, onViewOrders }) => {
               ))}
             </div>
 
-            <div className="cart-summary">
-              <div className="summary-row">
+            <div className="bg-[#1a1a1a] border-[1px] border-[#333] rounded-[15px] p-6 h-fit sticky top-8">
+              <div className="flex justify-between mb-4 pb-2">
                 <span>Total Items:</span>
                 <span>{getTotalItems()}</span>
               </div>
-              <div className="summary-row total">
+              <div className="flex justify-between border-t-[1px] border-[#333] pt-4 text-xl font-bold text-white">
                 <span>Total:</span>
                 <span>${calculateTotal()}</span>
               </div>
 
-              <div className="cart-actions">
+              <div className="flex flex-col gap-3 mt-4">
                 <button
                   onClick={onCheckout}
-                  className="checkout-btn"
+                  className="w-full bg-gradient-to-r from-[#1db954] to-[#1ed760] border-none text-white py-4 px-4 rounded-full cursor-pointer font-bold text-lg uppercase tracking-[0.5px] transition-all duration-300 hover:bg-gradient-to-r hover:from-[#1ed760] hover:to-[#22e065] hover:-translate-y-0.5 hover:shadow-[0_4px_15px_rgba(29,185,84,0.3)] disabled:bg-[#555] disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={cart.items.length === 0}
                 >
                   Proceed to Checkout
@@ -273,9 +276,12 @@ const Cart = ({ onBack, onCheckout, onViewOrders }) => {
 
         {/* Previous Orders Button - always visible when logged in */}
         {onViewOrders && (
-          <div className="order-history-section">
-            <button onClick={onViewOrders} className="view-orders-btn">
-              <svg className="orders-icon" viewBox="0 0 24 24" fill="none">
+          <div className="mt-8 pt-8 border-t-[1px] border-[#333]">
+            <button 
+              onClick={onViewOrders} 
+              className="w-full max-w-[400px] mx-auto bg-transparent border-2 border-[#b3b3b3] text-[#b3b3b3] py-3 px-4 rounded-full cursor-pointer font-semibold text-sm uppercase tracking-[0.5px] transition-all duration-300 flex items-center justify-center gap-2 hover:border-white hover:text-white hover:-translate-y-0.5"
+            >
+              <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none">
                 <path
                   d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
                   stroke="currentColor"
