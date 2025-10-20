@@ -19,6 +19,7 @@ import AlbumManagement from "./components/AlbumManagement";
 import ArtistManagement from "./components/ArtistManagement";
 import UserManagement from "./components/UserManagement";
 import Login from "./components/Login";
+import TrackManagement from "./components/TrackManagement";
 
 function App() {
   // Navigation State - manages current admin view
@@ -130,6 +131,8 @@ function App() {
         return <Dashboard onNavigate={handleNavigate} />;
       case "albums":
         return <AlbumManagement openAddForm={quickAction === "add"} />;
+      case "tracks":
+        return <TrackManagement openAddForm={quickAction === "add"} />;
       case "artists":
         return <ArtistManagement openAddForm={quickAction === "add"} />;
       case "users":

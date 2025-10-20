@@ -301,9 +301,6 @@ const ArtistManagement = ({ openAddForm = false }) => {
                 <th className="px-6 py-4 text-left text-[#c1c1c1] font-semibold">
                   Country
                 </th>
-                <th className="px-6 py-4 text-left text-[#c1c1c1] font-semibold">
-                  Albums
-                </th>
 
                 <th className="px-6 py-4 text-left text-[#c1c1c1] font-semibold">
                   Actions
@@ -320,11 +317,6 @@ const ArtistManagement = ({ openAddForm = false }) => {
                     {artist.name}
                   </td>
                   <td className="px-6 py-4 text-[#b3b3b3]">{artist.country}</td>
-                  <td className="px-6 py-4 text-[#b3b3b3]">
-                    <span className="bg-[#1db954] text-black px-2 py-1 rounded-full text-xs font-bold">
-                      {artist.albumCount || 0}
-                    </span>
-                  </td>
 
                   <td className="px-6 py-4">
                     <div className="flex gap-2">
@@ -336,7 +328,8 @@ const ArtistManagement = ({ openAddForm = false }) => {
                       </button>
                       <button
                         onClick={() => handleDelete(artist.artistId)}
-                        className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm font-medium transition-colors"
+                        className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-700"
+                        disabled={artist.albums && artist.albums.length > 0}
                       >
                         Delete
                       </button>

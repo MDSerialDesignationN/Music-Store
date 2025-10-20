@@ -1,9 +1,9 @@
 /**
  * Track Routes
- * 
+ *
  * Defines HTTP routes for individual track operations.
  * Public routes accessible without authentication.
- * 
+ *
  * Routes:
  * - GET /album/:albumId - Get all tracks for specific album
  * - GET / - Get all tracks with album data
@@ -23,5 +23,14 @@ trackRouter.get("/", TrackController.getAllTracks);
 
 // Get track by ID - individual track details
 trackRouter.get("/:id", TrackController.getTrackById);
+
+// Create a new track
+trackRouter.post("/", TrackController.createTrack);
+
+// Update an existing track
+trackRouter.put("/:id", TrackController.updateTrack);
+
+// Delete a track
+trackRouter.delete("/:id", TrackController.deleteTrack);
 
 module.exports = trackRouter;

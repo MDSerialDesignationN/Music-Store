@@ -130,6 +130,7 @@ class DatabaseManager {
         params.push(...Object.values(conditions));
       }
 
+
       // Add ORDER BY if specified
       if (options.orderBy) {
         sql += ` ORDER BY ${options.orderBy}`;

@@ -23,6 +23,7 @@ const AlbumManagement = ({ openAddForm = false }) => {
   const [showAddForm, setShowAddForm] = useState(openAddForm);
   const [editingAlbum, setEditingAlbum] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [genres, setGenres] = useState([]);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -33,22 +34,16 @@ const AlbumManagement = ({ openAddForm = false }) => {
   });
 
   // Demo genres
-  const genres = [
-    { id: 1, name: "Rock" },
-    { id: 2, name: "Pop" },
-    { id: 3, name: "Jazz" },
-    { id: 4, name: "Classical" },
-    { id: 5, name: "Electronic" },
-  ];
 
   // Fetch albums and artists
   const fetchData = async () => {
     try {
       setLoading(true);
 
-      const [albumsRes, artistsRes] = await Promise.all([
-        fetch("/api/album").catch(() => ({ ok: false })),
+      const [albumsRes, artistsRes, genresRes] = await Promise.all([
+        fetch("/api/album/all").catch(() => ({ ok: false })),
         fetch("/api/artist").catch(() => ({ ok: false })),
+        fetch("/api/genre").catch(() => ({ ok: false })),
       ]);
 
       if (albumsRes.ok) {
@@ -56,32 +51,7 @@ const AlbumManagement = ({ openAddForm = false }) => {
         setAlbums(albumData.albums || []);
       } else {
         // Demo data if API fails
-        setAlbums([
-          {
-            id: 1,
-            title: "Abbey Road",
-            artist: { id: 1, name: "The Beatles" },
-            genre: { id: 1, name: "Rock" },
-            release_year: 1969,
-            price: 19.99,
-          },
-          {
-            id: 2,
-            title: "Thriller",
-            artist: { id: 2, name: "Michael Jackson" },
-            genre: { id: 2, name: "Pop" },
-            release_year: 1982,
-            price: 24.99,
-          },
-          {
-            id: 3,
-            title: "Kind of Blue",
-            artist: { id: 3, name: "Miles Davis" },
-            genre: { id: 3, name: "Jazz" },
-            release_year: 1959,
-            price: 22.99,
-          },
-        ]);
+        setAlbums([]);
       }
 
       if (artistsRes.ok) {
@@ -89,13 +59,14 @@ const AlbumManagement = ({ openAddForm = false }) => {
         setArtists(artistData.artists || []);
       } else {
         // Demo artists if API fails
-        setArtists([
-          { id: 1, name: "The Beatles" },
-          { id: 2, name: "Michael Jackson" },
-          { id: 3, name: "Miles Davis" },
-          { id: 4, name: "Queen" },
-          { id: 5, name: "Pink Floyd" },
-        ]);
+        setArtists([]);
+      }
+      if (genresRes.ok) {
+        const genreData = await genresRes.json();
+        setGenres(genreData.genres || []);
+      } else {
+        // Demo genres if API fails
+        setGenres([]);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -130,7 +101,7 @@ const AlbumManagement = ({ openAddForm = false }) => {
       if (editingAlbum) {
         // Update existing album (demo)
         const updatedAlbums = albums.map((album) =>
-          album.id === editingAlbum.id
+          album.albumId === editingAlbum.albumId
             ? {
                 ...album,
                 title: albumData.title,
@@ -185,10 +156,24 @@ const AlbumManagement = ({ openAddForm = false }) => {
 
   // Handle delete
   const handleDelete = async (albumId) => {
-    if (window.confirm("Are you sure you want to delete this album?")) {
+    if (
+      window.confirm(
+        "Are you sure you want to delete this album? This action cannot be undone."
+      )
+    ) {
       try {
-        // Demo delete
-        setAlbums(albums.filter((album) => album.id !== albumId));
+        const response = await fetch(
+          `http://localhost:3000/api/album/${albumId}`,
+          {
+            method: "DELETE",
+          }
+        );
+
+        if (response.ok) {
+          console.log("Album deleted successfully");
+          await fetchData();
+        } else {
+        }
       } catch (error) {
         console.error("Error deleting album:", error);
       }
@@ -406,7 +391,7 @@ const AlbumManagement = ({ openAddForm = false }) => {
             <tbody>
               {filteredAlbums.map((album) => (
                 <tr
-                  key={album.id}
+                  key={album.albumId}
                   className="border-t border-[#444] hover:bg-[#222] transition-colors"
                 >
                   <td className="px-6 py-4 text-[#c1c1c1] font-medium">
@@ -431,8 +416,9 @@ const AlbumManagement = ({ openAddForm = false }) => {
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(album.id)}
-                        className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm font-medium transition-colors"
+                        onClick={() => handleDelete(album.albumId)}
+                        className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-700"
+                        disabled={album.tracks && album.tracks.length > 0}
                       >
                         Delete
                       </button>

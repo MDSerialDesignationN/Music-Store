@@ -24,6 +24,7 @@ const AdminHeader = ({ admin, currentView, onNavigate, onLogout }) => {
   const menuItems = [
     { key: "dashboard", label: "Dashboard", icon: DashboardIcon },
     { key: "albums", label: "Albums", icon: AlbumIcon },
+    { key: "tracks", label: "Tracks", icon: AlbumIcon },
     { key: "artists", label: "Artists", icon: ArtistIcon },
     { key: "users", label: "Users", icon: UsersIcon },
   ];

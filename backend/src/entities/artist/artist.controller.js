@@ -31,6 +31,13 @@ class ArtistController {
     try {
       const artists = await Artist.find();
 
+      await Promise.all(
+        artists.map(async (artist) => {
+          const albums = await Album.find({ artistId: artist.artistId });
+          artist.albums = albums;
+        })
+      );
+
       if (!artists || artists.length === 0) {
         return res.status(404).json({ error: "No artists available." });
       }
